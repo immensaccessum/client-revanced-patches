@@ -17,6 +17,8 @@ patches {
         description = "Патчи официального клиента 4PDA. В репозитории только патч, без apk клиента."
         source = "https://github.com/immensaccessum/4pda-revanced-patches"
         author = "immensaccessum"
+        contact = "https://github.com/immensaccessum"
+        website = "https://github.com/immensaccessum/4pda-revanced-patches"
         license = "MIT"
     }
 }
