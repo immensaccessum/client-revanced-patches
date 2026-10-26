@@ -1,0 +1,4 @@
+[versions]
+revanced-patcher = "22.0.1"
+#noinspection GradleDependency
+smali = "3.0.9"

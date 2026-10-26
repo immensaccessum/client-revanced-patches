@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew build buildAndroid --no-daemon
+
+      - name: Select the patch bundle
+        id: bundle
+        run: |
+          file=$(find patches/build/libs -name '*.rvp' ! -name '*sources*' ! -name '*javadoc*' | head -n1)
+          if [ -z "$file" ]; then
+            echo "No .rvp bundle found" >&2
+            exit 1
+          fi
+          echo "path=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" "${{ steps.bundle.outputs.path }}" --title "${{ github.ref_name }}" --generate-notes
+
+      - name: Publish patches.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ github.ref_name }}"
+          rvp_name="$(basename "${{ steps.bundle.outputs.path }}")"
+          download_url="${{ github.server_url }}/${{ github.repository }}/releases/download/${version}/${rvp_name}"
+          created_at="$(date -u +%Y-%m-%dT%H:%M:%S)"
+          notes="$(gh release view "$version" --json body -q .body)"
+          notes="${notes:-Release $version}"
+          jq -n \
+            --arg version "$version" \
+            --arg created_at "$created_at" \
+            --arg description "$notes" \
+            --arg download_url "$download_url" \
+            '{version: $version, created_at: $created_at, description: $description, download_url: $download_url}' \
+            > patches.json
+          gh release upload "$version" patches.json --clobber
