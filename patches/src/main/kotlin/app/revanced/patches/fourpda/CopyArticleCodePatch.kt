@@ -237,11 +237,14 @@ private const val ARTICLE_BB_SMALI = """
     check-cast v4, Lru/fourpda/client/V0${'$'}z;
     iget-object v5, v4, Lru/fourpda/client/V0${'$'}z;->c:Ljava/lang/String;
     sget-object v6, Lru/fourpda/client/ArticleBb;->posts:Ljava/util/WeakHashMap;
-    if-eqz v6, :text
+    if-eqz v6, :nullbody
     invoke-virtual {v6, v4}, Ljava/util/WeakHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
     move-result-object v6
-    if-eqz v6, :text
+    if-eqz v6, :nullbody
     check-cast v6, Ljava/lang/String;
+    goto :text
+    :nullbody
+    const/4 v6, 0x0
     :text
     invoke-static {v2, v5, v6}, Lru/fourpda/client/ArticleBb;->quote(Ljava/lang/StringBuilder;Ljava/lang/String;Ljava/lang/String;)V
     add-int/lit8 v3, v3, 0x1
