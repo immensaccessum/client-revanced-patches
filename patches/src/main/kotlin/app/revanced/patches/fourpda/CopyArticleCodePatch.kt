@@ -160,7 +160,7 @@ val copyArticleCodePatch = bytecodePatch(
         } ?: error("не найдено поле с текстом статьи")
         parse.addInstructions(
             loaded.index + 1,
-            "invoke-static {v0, v1}, $ARTICLE_BB->save($ARTICLE_MODEL;Ljava/lang/String;)V",
+            "invoke-static {v0, v1}, $ARTICLE_BB->save(${ARTICLE_MODEL}Ljava/lang/String;)V",
         )
     }
 }
