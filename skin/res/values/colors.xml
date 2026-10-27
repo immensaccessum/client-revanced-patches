@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bubble_my_bg">#ffe4e6fa</color>
+    <color name="brend">#ff5f65d4</color>
+    <color name="brend_alpha">#405f65d4</color>
+    <color name="status_bar">#ff3c428e</color>
+    <color name="button_text">#ff5f65d4</color>
+    <color name="start_btn_text">#ff5f65d4</color>
+    <color name="bb_link">#ff5f65d4</color>
+    <color name="pressed">#ffc9cbf2</color>
+    <color name="refresh_arrow_2">#ff5f65d4</color>
+    <color name="comments_count_bg">#ff5f65d4</color>
+    <color name="bb_selection_background">#ff5f65d4</color>
+    <color name="skin_keyword_on_bg">#ffc9cbf2</color>
+    <color name="search_post_title">#ffd4d6f5</color>
+    <color name="progress_image">#ff5f65d4</color>
+    <color name="progress_qms">#ff5f65d4</color>
+    <color name="progress_done">#ff5f65d4</color>
+    <color name="zn_bubble_my_bg">#ff2e3158</color>
+    <color name="zn_brend">#ff2c2f66</color>
+    <color name="zn_brend_alpha">#402c2f66</color>
+    <color name="zn_status_bar">#ff1e2048</color>
+    <color name="zn_bb_link">#ff9aa0ef</color>
+    <color name="zn_pressed">#ff5f65d4</color>
+    <color name="zn_refresh_arrow_2">#ff2c2f66</color>
+    <color name="zn_start_btn_text">#ff2c2f66</color>
+    <color name="zn_comments_count_bg">#ff5f65d4</color>
+    <color name="zn_bb_selection_background">#ff5f65d4</color>
+    <color name="zn_skin_keyword_on_bg">#ff5f65d4</color>
+    <color name="zn_search_post_title">#ff3a3d72</color>
+    <color name="zn_progress_done">#ff9aa0ef</color>
+</resources>
