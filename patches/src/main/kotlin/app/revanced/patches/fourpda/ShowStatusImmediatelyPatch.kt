@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -28,6 +29,7 @@ import java.io.StringReader
 
 private const val MAIN_LAYOUT = "Lru/fourpda/client/MainLayout;"
 private const val STATUS_HOLD = "Lru/fourpda/client/StatusHold;"
+private const val STATUS_LINE = "Lru/fourpda/client/StatusLine;"
 private const val DELAY_3_SECONDS = 3000L
 private const val HOLD_MS = 1000L
 
@@ -41,7 +43,7 @@ private fun assemble(smali: String): ClassDef {
     val parser = smaliParser(tokens)
     val fileTree = parser.smali_file()
     if (lexer.numberOfSyntaxErrors > 0 || parser.numberOfSyntaxErrors > 0) {
-        error("ошибка сборки StatusHold")
+        error("ошибка сборки StatusLine")
     }
     val walker = smaliTreeWalker(
         CommonTreeNodeStream(fileTree.tree).apply { tokenStream = tokens },
@@ -85,28 +87,58 @@ private fun MutableMethod.repairShowBranch() {
     replaceInstruction(index, BuilderInstruction21t(Opcode.IF_NEZ, branch.registerA, branch.target))
 }
 
-private fun MutableMethod.nopStatusHide() {
+/**
+ * 1.0.7 заменил скрытие на nop, поэтому полоска оставалась на экране.
+ * Возвращаем очистку анимации и тега, а само скрытие откладываем.
+ */
+private fun MutableMethod.restoreNopedHide() {
+    val instructions = implementation!!.instructions
+    instructions.forEachIndexed { index, instruction ->
+        if (instruction.opcode != Opcode.RETURN_VOID || index < 6) {
+            return@forEachIndexed
+        }
+        val nops = listOf(index - 5, index - 3, index - 1).all { instructions[it].opcode == Opcode.NOP }
+        val loads = listOf(index - 6, index - 4, index - 2).all { instructions[it].opcode == Opcode.IGET_OBJECT }
+        if (!nops || !loads) {
+            return@forEachIndexed
+        }
+        replaceInstruction(index - 5, "invoke-virtual {v0}, Landroid/view/View;->clearAnimation()V")
+        replaceInstruction(index - 3, "invoke-virtual {v0, v4}, Landroid/view/View;->setTag(Ljava/lang/Object;)V")
+        replaceInstruction(index - 1, "invoke-static {v0}, $STATUS_LINE->hideLater(Landroid/widget/TextView;)V")
+    }
+}
+
+/** Прямое скрытие в конце загрузки меняем на отложенное. Ветка ошибки остаётся мгновенной. */
+private fun MutableMethod.delayStatusHide() {
     val instructions = implementation!!.instructions
     instructions.forEachIndexed { index, instruction ->
         if (instruction.calledMethod()?.name != "clearAnimation") {
             return@forEachIndexed
         }
         val setTag = instructions.getOrNull(index + 2)
-        val setVisibility = instructions.getOrNull(index + 4)
-        if (setTag?.calledMethod()?.name == "setTag" && setVisibility?.calledMethod()?.name == "setVisibility") {
-            replaceInstruction(index, "nop")
-            replaceInstruction(index + 2, "nop")
-            replaceInstruction(index + 4, "nop")
+        val setVisibility = instructions.getOrNull(index + 4) ?: return@forEachIndexed
+        val after = instructions.getOrNull(index + 5)
+        if (
+            setTag?.calledMethod()?.name != "setTag" ||
+            setVisibility.calledMethod()?.name != "setVisibility" ||
+            after?.opcode != Opcode.RETURN_VOID
+        ) {
+            return@forEachIndexed
         }
+        val view = (setVisibility as FiveRegisterInstruction).registerC
+        replaceInstruction(
+            index + 4,
+            "invoke-static {v$view}, $STATUS_LINE->hideLater(Landroid/widget/TextView;)V",
+        )
     }
 }
 
-private const val STATUS_HOLD_SMALI = """
-.class public Lru/fourpda/client/StatusHold;
+private const val STATUS_LINE_SMALI = """
+.class public Lru/fourpda/client/StatusLine;
 .super Ljava/lang/Object;
 .implements Ljava/lang/Runnable;
 
-.field private static instance:Lru/fourpda/client/StatusHold;
+.field private static instance:Lru/fourpda/client/StatusLine;
 .field private static view:Landroid/widget/TextView;
 
 .method public constructor <init>()V
@@ -115,22 +147,30 @@ private const val STATUS_HOLD_SMALI = """
     return-void
 .end method
 
-.method public static apply(Lru/fourpda/client/MainLayout;Landroid/widget/TextView;Ljava/lang/CharSequence;)V
-    .registers 6
-    sget-object v0, Lru/fourpda/client/StatusHold;->instance:Lru/fourpda/client/StatusHold;
-    if-nez v0, :ready
-    new-instance v0, Lru/fourpda/client/StatusHold;
-    invoke-direct {v0}, Lru/fourpda/client/StatusHold;-><init>()V
-    sput-object v0, Lru/fourpda/client/StatusHold;->instance:Lru/fourpda/client/StatusHold;
-    :ready
+# Текст пишем только если он не пустой. Пустую строку не ставим: иначе секунду висит голая полоска.
+.method public static keep(Landroid/widget/TextView;Ljava/lang/CharSequence;)V
+    .registers 4
+    invoke-interface {p1}, Ljava/lang/CharSequence;->length()I
+    move-result v0
+    if-lez v0, :empty
+    sget-object v0, Lru/fourpda/client/StatusLine;->instance:Lru/fourpda/client/StatusLine;
+    if-eqz v0, :write
     invoke-virtual {p0, v0}, Landroid/view/View;->removeCallbacks(Ljava/lang/Runnable;)Z
-    invoke-interface {p2}, Ljava/lang/CharSequence;->length()I
-    move-result v1
-    if-gtz v1, :empty
-    invoke-virtual {p1, p2}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
-    return-void
+    :write
+    invoke-virtual {p0, p1}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
     :empty
-    sput-object p1, Lru/fourpda/client/StatusHold;->view:Landroid/widget/TextView;
+    return-void
+.end method
+
+.method public static hideLater(Landroid/widget/TextView;)V
+    .registers 4
+    sget-object v0, Lru/fourpda/client/StatusLine;->instance:Lru/fourpda/client/StatusLine;
+    if-nez v0, :ready
+    new-instance v0, Lru/fourpda/client/StatusLine;
+    invoke-direct {v0}, Lru/fourpda/client/StatusLine;-><init>()V
+    sput-object v0, Lru/fourpda/client/StatusLine;->instance:Lru/fourpda/client/StatusLine;
+    :ready
+    sput-object p0, Lru/fourpda/client/StatusLine;->view:Landroid/widget/TextView;
     const-wide/16 v1, 0x3e8
     invoke-virtual {p0, v0, v1, v2}, Landroid/view/View;->postDelayed(Ljava/lang/Runnable;J)Z
     return-void
@@ -138,7 +178,7 @@ private const val STATUS_HOLD_SMALI = """
 
 .method public run()V
     .registers 3
-    sget-object v0, Lru/fourpda/client/StatusHold;->view:Landroid/widget/TextView;
+    sget-object v0, Lru/fourpda/client/StatusLine;->view:Landroid/widget/TextView;
     if-eqz v0, :done
     const-string v1, ""
     invoke-virtual {v0, v1}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
@@ -148,7 +188,7 @@ private const val STATUS_HOLD_SMALI = """
     const/4 v1, 0x4
     invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
     const/4 v0, 0x0
-    sput-object v0, Lru/fourpda/client/StatusHold;->view:Landroid/widget/TextView;
+    sput-object v0, Lru/fourpda/client/StatusLine;->view:Landroid/widget/TextView;
     :done
     return-void
 .end method
@@ -183,16 +223,22 @@ val showStatusImmediatelyPatch = bytecodePatch(
 
         statusMethod.stripEarlyReturn()
         statusMethod.repairShowBranch()
-        statusMethod.nopStatusHide()
+        statusMethod.restoreNopedHide()
+        statusMethod.delayStatusHide()
 
-        val setTextIndex = statusMethod.implementation!!.instructions.indexOfFirst { instruction ->
-            val called = instruction.calledMethod()
-            called?.name == "setText" && called.definingClass == "Landroid/widget/TextView;"
+        val textWrite = statusMethod.implementation!!.instructions.indexOfFirst { instruction ->
+            val called = instruction.calledMethod() ?: return@indexOfFirst false
+            (called.name == "setText" && called.definingClass == "Landroid/widget/TextView;") ||
+                (called.name == "apply" && called.definingClass == STATUS_HOLD)
         }
-        if (setTextIndex >= 0) {
+        if (textWrite >= 0) {
+            val invoke = statusMethod.implementation!!.instructions[textWrite] as FiveRegisterInstruction
+            val called = statusMethod.implementation!!.instructions[textWrite].calledMethod()!!
+            val view = if (called.name == "apply") invoke.registerD else invoke.registerC
+            val text = if (called.name == "apply") invoke.registerE else invoke.registerD
             statusMethod.replaceInstruction(
-                setTextIndex,
-                "invoke-static {p0, v2, v0}, $STATUS_HOLD->apply(Lru/fourpda/client/MainLayout;Landroid/widget/TextView;Ljava/lang/CharSequence;)V",
+                textWrite,
+                "invoke-static {v$view, v$text}, $STATUS_LINE->keep(Landroid/widget/TextView;Ljava/lang/CharSequence;)V",
             )
         }
 
@@ -203,8 +249,8 @@ val showStatusImmediatelyPatch = bytecodePatch(
             )
         }
 
-        if (classDefs[STATUS_HOLD] == null) {
-            classDefs += assemble(STATUS_HOLD_SMALI)
+        if (classDefs[STATUS_LINE] == null) {
+            classDefs += assemble(STATUS_LINE_SMALI)
         }
     }
 }
