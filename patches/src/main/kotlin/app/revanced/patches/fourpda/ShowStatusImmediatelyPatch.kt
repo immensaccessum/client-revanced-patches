@@ -1,5 +1,6 @@
 package app.revanced.patches.fourpda
 
+import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod
 import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod.Companion.toMutable
 import app.revanced.patcher.extensions.ExternalLabel
 import app.revanced.patcher.extensions.addInstructions
@@ -25,7 +26,7 @@ private const val MAIN_LAYOUT = "Lru/fourpda/client/MainLayout;"
 private const val RUNNABLE = "Ljava/lang/Runnable;"
 private const val STATUS_FIELD = "Lru/fourpda/client/MainLayout;->b:Landroid/widget/TextView;"
 private const val DELAY_3_SECONDS = 3000L
-private const val HOLD_MS = 1000
+private const val HOLD_MS = 1000L
 private const val HOLD_TAG = 2
 
 private fun Instruction.calledMethod(): MethodReference? =
