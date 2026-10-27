@@ -319,7 +319,11 @@ val copyArticleCodePatch = bytecodePatch(
             .mutableClass.methods.first { it.name == "a" && it.parameterTypes.size == 3 }
         topicClick.addInstructions(
             0,
-            "invoke-static {p0, p3}, $ARTICLE_BB->onTopicMenu(Ljava/lang/Object;I)V",
+            """
+            move-object/from16 v0, p0
+            move/from16 v1, p3
+            invoke-static {v0, v1}, $ARTICLE_BB->onTopicMenu(Ljava/lang/Object;I)V
+            """.trimIndent(),
         )
 
         val postMenu = proxy(topic).mutableClass.methods.singleOrNull { method ->
@@ -344,7 +348,11 @@ val copyArticleCodePatch = bytecodePatch(
             .mutableClass.methods.first { it.name == "a" && it.parameterTypes.size == 3 }
         postClick.addInstructions(
             0,
-            "invoke-static {p0, p3}, $ARTICLE_BB->onPostMenu(Ljava/lang/Object;I)V",
+            """
+            move-object/from16 v0, p0
+            move/from16 v1, p3
+            invoke-static {v0, v1}, $ARTICLE_BB->onPostMenu(Ljava/lang/Object;I)V
+            """.trimIndent(),
         )
 
         val postParse = proxy(classDefs[TOPIC_POST] ?: error("в apk нет модели поста"))
