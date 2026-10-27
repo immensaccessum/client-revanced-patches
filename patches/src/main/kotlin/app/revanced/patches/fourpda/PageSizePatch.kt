@@ -37,7 +37,7 @@ val pageSizePatch = bytecodePatch(
     name = "Страница по 500",
     description = "В настройках «Количество постов» и «Количество тем», и в меню тикетов «Тикетов на странице»: потолок 500, шаг плюса и минуса 10.",
 ) {
-    compatibleWith("ru.fourpda.client")
+    compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
         for (type in clickClasses) {

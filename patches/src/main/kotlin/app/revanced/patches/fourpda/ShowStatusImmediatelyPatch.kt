@@ -198,7 +198,7 @@ val showStatusImmediatelyPatch = bytecodePatch(
     name = "Show status immediately",
     description = "Нижняя строка статуса появляется сразу и остаётся ещё секунду после загрузки.",
 ) {
-    compatibleWith("ru.fourpda.client")
+    compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
         val mainLayout = classDefs[MAIN_LAYOUT] ?: error("в apk нет $MAIN_LAYOUT")

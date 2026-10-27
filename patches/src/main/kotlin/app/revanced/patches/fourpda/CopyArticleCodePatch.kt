@@ -269,7 +269,7 @@ val copyArticleCodePatch = bytecodePatch(
     name = "Скопировать код",
     description = "В меню статьи — код статьи. В меню поста — цитата поста. В меню темы — цитаты сообщений открытой страницы, без шапки. Берётся уже загруженный текст, без нового запроса.",
 ) {
-    compatibleWith("ru.fourpda.client")
+    compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
         if (classDefs[ARTICLE_BB] == null) {

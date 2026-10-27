@@ -296,7 +296,7 @@ val scrollModesPatch = bytecodePatch(
     name = "Прокрутка вместе",
     description = "В настройках «Режим прокрутки главного окна» можно включить несколько вариантов сразу: обычный, ползунок и кнопки вверх/вниз.",
 ) {
-    compatibleWith("ru.fourpda.client")
+    compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
         if (classDefs[SCROLL_MODES] == null) {
