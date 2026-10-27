@@ -1,6 +1,7 @@
 package app.revanced.patches.fourpda
 
-import app.revanced.patcher.extensions.replaceInstruction
+import app.revanced.patcher.extensions.addInstructions
+import app.revanced.patcher.extensions.removeInstructions
 import app.revanced.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -10,6 +11,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private const val TAB = "Lru/fourpda/client/l1;"
 private const val LAYOUT = "Lru/fourpda/client/MainLayout;"
 
+// В nav_tabs семь постоянных строк: шесть пунктов меню и подпись «Открытые вкладки».
+private const val OPEN_TABS = 7
+
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.calledMethod(): MethodReference? =
     (this as? ReferenceInstruction)?.reference as? MethodReference
 
@@ -18,17 +22,16 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.field(
 
 val newTabOnTopPatch = bytecodePatch(
     name = "Новая вкладка сверху",
-    description = "В левой шторке новая вкладка появляется в начале списка.",
+    description = "В левой шторке новая вкладка появляется сразу под «Открытые вкладки», а не в конце списка.",
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
         val tab = classDefs[TAB] ?: error("в apk нет вкладки")
         val setup = proxy(tab).mutableClass.methods.firstOrNull { method ->
-            method.implementation?.instructions?.any { instruction ->
-                instruction.field()?.let { it.definingClass == LAYOUT && it.name == "h" } == true &&
-                    instruction.calledMethod() == null
-            } == true && method.name == "<init>"
+            method.name == "<init>" && method.implementation?.instructions?.any { instruction ->
+                instruction.field()?.let { it.definingClass == LAYOUT && it.name == "h" } == true
+            } == true
         } ?: error("не найден конструктор вкладки")
         val instructions = setup.implementation!!.instructions
         val insert = instructions.indices.firstOrNull { index ->
@@ -40,25 +43,23 @@ val newTabOnTopPatch = bytecodePatch(
                 drawer?.definingClass == LAYOUT && drawer.name == "h" &&
                 row?.definingClass == TAB && row.name == "k"
         } ?: error("не найдена вставка строки шторки")
-        val drawer = instructions[insert - 2].field()
-        val row = instructions[insert - 1].field()
-        if (drawer?.definingClass != LAYOUT || drawer.name != "h" || row?.definingClass != TAB || row.name != "k") {
-            error("строка шторки стоит не на списке вкладок")
-        }
         val call = instructions[insert] as FiveRegisterInstruction
-        val index = instructions.take(insert).indexOfLast { instruction ->
-            val called = instruction.calledMethod() ?: return@indexOfLast false
-            called.name == "addView" && called.parameterTypes.size == 2
+        val drawerRegister = call.registerC
+        val rowRegister = call.registerD
+        val indexRegister = 4
+        if (
+            drawerRegister > 15 || rowRegister > 15 ||
+            drawerRegister == indexRegister || rowRegister == indexRegister
+        ) {
+            error("строка вкладки попала в широкий регистр")
         }
-        if (index < 0) error("не найден ноль для верха списка")
-        val zero = (instructions[index] as FiveRegisterInstruction).registerE
-        if (zero > 15 || call.registerC > 15 || call.registerD > 15) {
-            error("список вкладок попал в широкий регистр")
-        }
-        setup.replaceInstruction(
+        setup.removeInstructions(insert, 1)
+        setup.addInstructions(
             insert,
-            "invoke-virtual {v${call.registerC}, v${call.registerD}, v$zero}, " +
-                "Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V",
+            """
+            const/4 v$indexRegister, 0x$OPEN_TABS
+            invoke-virtual {v$drawerRegister, v$rowRegister, v$indexRegister}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
+            """.trimIndent(),
         )
     }
 }
