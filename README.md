@@ -7,7 +7,7 @@
 1. Поставить [ReVanced Manager](https://github.com/ReVanced/revanced-manager/releases/latest).
 2. Patches → карандаш → плюс → Enter URL:
 
-   `https://github.com/immensaccessum/4pda-revanced-patches/releases/latest/download/patches.json`
+   `https://github.com/immensaccessum/client-revanced-patches/releases/latest/download/patches.json`
 
 3. Apps → установленное приложение → Patch → Install.
 

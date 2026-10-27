@@ -1,4 +1,4 @@
-rootProject.name = "4pda-revanced-patches"
+rootProject.name = "client-revanced-patches"
 
 pluginManagement {
     repositories {

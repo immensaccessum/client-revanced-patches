@@ -14,11 +14,11 @@ extensions.configure<KotlinJvmProjectExtension>("kotlin") {
 patches {
     about {
         name = "4PDA patches"
-        description = "Патчи официального клиента 4PDA. В репозитории только патч, без apk клиента."
-        source = "https://github.com/immensaccessum/4pda-revanced-patches"
+        description = "Патчи официального клиента 4PDA. В репозитории только патч, без apk клиента. Использование и распространение модификаций запрещены."
+        source = "https://github.com/immensaccessum/client-revanced-patches"
         author = "immensaccessum"
         contact = "https://github.com/immensaccessum"
-        website = "https://github.com/immensaccessum/4pda-revanced-patches"
-        license = "MIT"
+        website = "https://github.com/immensaccessum/client-revanced-patches"
+        license = "Все права защищены, передача запрещена"
     }
 }
