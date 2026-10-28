@@ -47,14 +47,13 @@ private const val MULTI_ACCOUNT_SMALI = """
 .super Ljava/lang/Object;
 .implements Landroid/view/View${'$'}OnClickListener;
 .implements Landroid/view/View${'$'}OnLongClickListener;
-.implements Landroid/content/DialogInterface${'$'}OnClickListener;
+.implements Lru/fourpda/client/B1${'$'}b;
 .implements Ljava/lang/Runnable;
 
 .field public act:Lru/fourpda/client/MainActivity;
 .field public mode:I
-.field public edit1:Landroid/widget/EditText;
+.field public dlg:Lru/fourpda/client/C1;
 .field public edit2:Landroid/widget/EditText;
-.field public check1:Landroid/widget/CheckBox;
 
 .method public constructor <init>(Lru/fourpda/client/MainActivity;I)V
     .registers 3
@@ -347,22 +346,8 @@ private const val MULTI_ACCOUNT_SMALI = """
     return-void
 .end method
 
-.method public static createBuilder(Landroid/content/Context;)Landroid/app/AlertDialog${'$'}Builder;
-    .registers 3
-    sget-boolean v0, Lru/fourpda/client/k1${'$'}a;->p0:Z
-    if-eqz v0, :light
-    const/4 v0, 0x4
-    goto :make
-    :light
-    const/4 v0, 0x5
-    :make
-    new-instance v1, Landroid/app/AlertDialog${'$'}Builder;
-    invoke-direct {v1, p0, v0}, Landroid/app/AlertDialog${'$'}Builder;-><init>(Landroid/content/Context;I)V
-    return-object v1
-.end method
-
 .method public static showMainDialog(Lru/fourpda/client/MainActivity;)V
-    .registers 12
+    .registers 13
     invoke-static {p0}, Lru/fourpda/client/MultiAccount;->syncCurrent(Landroid/content/Context;)V
     invoke-static {p0}, Lru/fourpda/client/MultiAccount;->loadArray(Landroid/content/Context;)Lorg/json/JSONArray;
     move-result-object v0
@@ -371,82 +356,88 @@ private const val MULTI_ACCOUNT_SMALI = """
 
     const/4 v2, 0x0
     sget-object v3, Lru/fourpda/client/F;->x:Lru/fourpda/client/F;
-    if-eqz v3, :calc_size
+    if-eqz v3, :init_b1
     iget v2, v3, Lru/fourpda/client/F;->q:I
 
-    :calc_size
-    if-lez v1, :empty_list
-    add-int/lit8 v3, v1, 0x4
-    goto :alloc_items
-    :empty_list
-    const/4 v3, 0x2
+    :init_b1
+    new-instance v3, Lru/fourpda/client/MultiAccount;
+    const/4 v4, 0x1
+    invoke-direct {v3, p0, v4}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
+    new-instance v5, Lru/fourpda/client/B1;
+    invoke-direct {v5, p0, v3, v4}, Lru/fourpda/client/B1;-><init>(Lru/fourpda/client/MainActivity;Lru/fourpda/client/B1${'$'}b;Z)V
 
-    :alloc_items
-    new-array v3, v3, [Ljava/lang/CharSequence;
-    const/4 v4, 0x0
-
-    :loop
-    if-ge v4, v1, :fill_actions
-    invoke-virtual {v0, v4}, Lorg/json/JSONArray;->optJSONObject(I)Lorg/json/JSONObject;
-    move-result-object v5
-    const-string v6, "?"
+    const/4 v6, 0x0
     const/4 v7, 0x0
-    if-eqz v5, :format_item
-    const-string v8, "name"
-    invoke-virtual {v5, v8, v6}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    const/4 v8, 0x0
+    const-string v9, "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u044b"
+    const/4 v10, 0x1
+    const/4 v11, 0x0
+    invoke-virtual/range {v5 .. v11}, Lru/fourpda/client/B1;->c(IIILjava/lang/String;ZZ)V
+
+    const/4 v3, 0x0
+    :loop
+    if-ge v3, v1, :fill_actions
+    invoke-virtual {v0, v3}, Lorg/json/JSONArray;->optJSONObject(I)Lorg/json/JSONObject;
     move-result-object v6
-    const-string v8, "id"
-    invoke-virtual {v5, v8, v7}, Lorg/json/JSONObject;->optInt(Ljava/lang/String;I)I
-    move-result v7
+    const-string v7, "?"
+    const/4 v8, 0x0
+    if-eqz v6, :format_item
+    const-string v9, "name"
+    invoke-virtual {v6, v9, v7}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v7
+    const-string v9, "id"
+    invoke-virtual {v6, v9, v8}, Lorg/json/JSONObject;->optInt(Ljava/lang/String;I)I
+    move-result v8
 
     :format_item
-    new-instance v8, Ljava/lang/StringBuilder;
-    invoke-direct {v8}, Ljava/lang/StringBuilder;-><init>()V
-    if-ne v7, v2, :inactive_prefix
-    if-lez v2, :inactive_prefix
-    const-string v9, "\u2713 "
-    goto :append_prefix
-    :inactive_prefix
-    const-string v9, "    "
-    :append_prefix
-    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    invoke-virtual {v8, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    const-string v9, " ["
-    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    invoke-virtual {v8, v7}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-    const-string v9, "]"
-    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    invoke-virtual {v8}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-    move-result-object v8
-    aput-object v8, v3, v4
-    add-int/lit8 v4, v4, 0x1
+    new-instance v6, Ljava/lang/StringBuilder;
+    invoke-direct {v6}, Ljava/lang/StringBuilder;-><init>()V
+    invoke-virtual {v6, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v7, " ["
+    invoke-virtual {v6, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v6, v8}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v7, "]"
+    invoke-virtual {v6, v7}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v6}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v9
+
+    const/4 v10, 0x0
+    if-ne v8, v2, :add_acc_row
+    if-lez v2, :add_acc_row
+    const/4 v10, 0x1
+
+    :add_acc_row
+    const/4 v6, 0x1
+    move v7, v3
+    invoke-virtual/range {v5 .. v10}, Lru/fourpda/client/B1;->b(IIILjava/lang/String;Z)V
+    add-int/lit8 v3, v3, 0x1
     goto :loop
 
     :fill_actions
-    const-string v5, "\u2795 \u0412\u0432\u0435\u0441\u0442\u0438 ID \u0438 pass_hash"
-    aput-object v5, v3, v1
-    add-int/lit8 v5, v1, 0x1
-    const-string v6, "\ud83d\udd11 \u0412\u043e\u0439\u0442\u0438 \u043f\u043e \u043b\u043e\u0433\u0438\u043d\u0443 \u0438 \u043f\u0430\u0440\u043e\u043b\u044e"
-    aput-object v6, v3, v5
-
-    if-lez v1, :build_dlg
-    add-int/lit8 v5, v1, 0x2
-    const-string v6, "\ud83d\udccb \u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c ID \u0438 pass_hash"
-    aput-object v6, v3, v5
-    add-int/lit8 v5, v1, 0x3
-    const-string v6, "\ud83d\uddd1 \u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430"
-    aput-object v6, v3, v5
-
-    :build_dlg
-    invoke-static {p0}, Lru/fourpda/client/MultiAccount;->createBuilder(Landroid/content/Context;)Landroid/app/AlertDialog${'$'}Builder;
-    move-result-object v5
-    const-string v6, "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u044b"
-    invoke-virtual {v5, v6}, Landroid/app/AlertDialog${'$'}Builder;->setTitle(Ljava/lang/CharSequence;)Landroid/app/AlertDialog${'$'}Builder;
-    new-instance v6, Lru/fourpda/client/MultiAccount;
+    const/4 v6, 0x2
     const/4 v7, 0x1
-    invoke-direct {v6, p0, v7}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
-    invoke-virtual {v5, v3, v6}, Landroid/app/AlertDialog${'$'}Builder;->setItems([Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)Landroid/app/AlertDialog${'$'}Builder;
-    invoke-virtual {v5}, Landroid/app/AlertDialog${'$'}Builder;->show()Landroid/app/AlertDialog;
+    const/4 v8, 0x0
+    const-string v9, "\u0412\u0432\u0435\u0441\u0442\u0438 ID \u0438 pass_hash"
+    invoke-virtual {v5, v6, v7, v8, v9}, Lru/fourpda/client/B1;->a(IIILjava/lang/String;)V
+
+    const/4 v7, 0x2
+    const-string v9, "\u0412\u043e\u0439\u0442\u0438 \u043f\u043e \u043b\u043e\u0433\u0438\u043d\u0443 \u0438 \u043f\u0430\u0440\u043e\u043b\u044e"
+    invoke-virtual {v5, v6, v7, v8, v9}, Lru/fourpda/client/B1;->a(IIILjava/lang/String;)V
+
+    if-lez v1, :show_dlg
+    const/4 v7, 0x3
+    const-string v9, "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c ID \u0438 pass_hash"
+    invoke-virtual {v5, v6, v7, v8, v9}, Lru/fourpda/client/B1;->a(IIILjava/lang/String;)V
+
+    const/4 v7, 0x4
+    const-string v9, "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442 \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430"
+    const/4 v10, 0x0
+    const/4 v11, 0x1
+    invoke-virtual/range {v5 .. v11}, Lru/fourpda/client/B1;->c(IIILjava/lang/String;ZZ)V
+
+    :show_dlg
+    const/4 v0, 0x0
+    invoke-virtual {v5, v0}, Lru/fourpda/client/B1;->e(Landroid/view/View;)Z
     return-void
 .end method
 
@@ -627,60 +618,78 @@ private const val MULTI_ACCOUNT_SMALI = """
 
 .method public static showTokenDialog(Lru/fourpda/client/MainActivity;)V
     .registers 8
-    new-instance v0, Landroid/widget/LinearLayout;
-    invoke-direct {v0, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
-    const/4 v1, 0x1
-    invoke-virtual {v0, v1}, Landroid/widget/LinearLayout;->setOrientation(I)V
-    iget v2, p0, Lru/fourpda/client/MainActivity;->b:F
-    const/high16 v3, 0x41a00000    # 20.0f
-    mul-float/2addr v2, v3
-    float-to-int v2, v2
-    div-int/lit8 v3, v2, 0x2
-    invoke-virtual {v0, v2, v3, v2, v3}, Landroid/view/View;->setPadding(IIII)V
-
-    new-instance v2, Landroid/widget/EditText;
-    invoke-direct {v2, p0}, Landroid/widget/EditText;-><init>(Landroid/content/Context;)V
-    const-string v3, "member_id (\u0438\u043b\u0438 \u0441\u0442\u0440\u043e\u043a\u0430 \u0441 pass_hash)"
-    invoke-virtual {v2, v3}, Landroid/widget/TextView;->setHint(Ljava/lang/CharSequence;)V
-    invoke-virtual {v2, v1}, Landroid/widget/TextView;->setSingleLine(Z)V
-    invoke-virtual {v0, v2}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
-
-    new-instance v3, Landroid/widget/EditText;
-    invoke-direct {v3, p0}, Landroid/widget/EditText;-><init>(Landroid/content/Context;)V
-    const-string v4, "pass_hash (32 \u0441\u0438\u043c\u0432\u043e\u043b\u0430, \u0435\u0441\u043b\u0438 \u043e\u0442\u0434\u0435\u043b\u044c\u043d\u043e)"
-    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setHint(Ljava/lang/CharSequence;)V
-    invoke-virtual {v3, v1}, Landroid/widget/TextView;->setSingleLine(Z)V
-    invoke-virtual {v0, v3}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
-
-    new-instance v4, Landroid/widget/CheckBox;
-    invoke-direct {v4, p0}, Landroid/widget/CheckBox;-><init>(Landroid/content/Context;)V
-    const-string v5, "\u0421\u043a\u0440\u044b\u0442\u044b\u0439 \u0432\u0445\u043e\u0434"
-    invoke-virtual {v4, v5}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
-    invoke-virtual {v4, v1}, Landroid/widget/CompoundButton;->setChecked(Z)V
-    invoke-virtual {v0, v4}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
-
-    new-instance v5, Lru/fourpda/client/MultiAccount;
-    const/4 v6, 0x2
-    invoke-direct {v5, p0, v6}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
-    iput-object v2, v5, Lru/fourpda/client/MultiAccount;->edit1:Landroid/widget/EditText;
-    iput-object v3, v5, Lru/fourpda/client/MultiAccount;->edit2:Landroid/widget/EditText;
-    iput-object v4, v5, Lru/fourpda/client/MultiAccount;->check1:Landroid/widget/CheckBox;
-
-    invoke-static {p0}, Lru/fourpda/client/MultiAccount;->createBuilder(Landroid/content/Context;)Landroid/app/AlertDialog${'$'}Builder;
-    move-result-object v1
+    new-instance v0, Lru/fourpda/client/C1;
     const-string v2, "\u0412\u0445\u043e\u0434 \u043f\u043e ID \u0438 pass_hash"
-    invoke-virtual {v1, v2}, Landroid/app/AlertDialog${'$'}Builder;->setTitle(Ljava/lang/CharSequence;)Landroid/app/AlertDialog${'$'}Builder;
-    invoke-virtual {v1, v0}, Landroid/app/AlertDialog${'$'}Builder;->setView(Landroid/view/View;)Landroid/app/AlertDialog${'$'}Builder;
-    const-string v0, "\u0412\u043e\u0439\u0442\u0438"
-    invoke-virtual {v1, v0, v5}, Landroid/app/AlertDialog${'$'}Builder;->setPositiveButton(Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)Landroid/app/AlertDialog${'$'}Builder;
-    const-string v0, "\u041e\u0442\u043c\u0435\u043d\u0430"
-    const/4 v2, 0x0
-    invoke-virtual {v1, v0, v2}, Landroid/app/AlertDialog${'$'}Builder;->setNegativeButton(Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)Landroid/app/AlertDialog${'$'}Builder;
-    invoke-virtual {v1}, Landroid/app/AlertDialog${'$'}Builder;->show()Landroid/app/AlertDialog;
+    const/4 v3, 0x0
+    const-string v4, "\u0412\u041e\u0419\u0422\u0418"
+    const/4 v5, 0x0
+    move-object v1, p0
+    invoke-direct/range {v0 .. v5}, Lru/fourpda/client/C1;-><init>(Lru/fourpda/client/MainActivity;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)V
+
+    iget-object v1, v0, Lru/fourpda/client/C1;->k:Landroid/widget/TextView;
+    const-string v2, "\u0423\u043a\u0430\u0436\u0438\u0442\u0435 member_id \u0438 32-\u0441\u0438\u043c\u0432\u043e\u043b\u044c\u043d\u044b\u0439 pass_hash (\u0438\u043b\u0438 \u0432\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u0441\u0442\u0440\u043e\u043a\u0443 \u043a\u0443\u043a\u0438 \u0432 \u043f\u0435\u0440\u0432\u043e\u0435 \u043f\u043e\u043b\u0435):"
+    invoke-virtual {v1, v2}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+
+    iget-object v1, v0, Lru/fourpda/client/C1;->l:Landroid/widget/EditText;
+    const/4 v2, 0x1
+    invoke-virtual {v1, v2}, Landroid/widget/TextView;->setInputType(I)V
+    sget v3, Lru/fourpda/client/k1${'$'}a;->c0:I
+    invoke-virtual {v1, v3}, Landroid/widget/TextView;->setHintTextColor(I)V
+    const-string v4, "member_id (\u0438\u043b\u0438 \u0441\u0442\u0440\u043e\u043a\u0430 \u0441 pass_hash)"
+    invoke-virtual {v1, v4}, Landroid/widget/TextView;->setHint(Ljava/lang/CharSequence;)V
+
+    invoke-virtual {p0}, Landroid/app/Activity;->getLayoutInflater()Landroid/view/LayoutInflater;
+    move-result-object v4
+    sget v5, Lru/fourpda/client/f1;->F:I
+    const/4 v6, 0x0
+    invoke-virtual {v4, v5, v6}, Landroid/view/LayoutInflater;->inflate(ILandroid/view/ViewGroup;)Landroid/view/View;
+    move-result-object v4
+    sget v5, Lru/fourpda/client/e1;->e6:I
+    invoke-virtual {v4, v5}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+    move-result-object v5
+    check-cast v5, Landroid/widget/EditText;
+    check-cast v4, Landroid/view/ViewGroup;
+    invoke-virtual {v4, v5}, Landroid/view/ViewGroup;->removeView(Landroid/view/View;)V
+    invoke-virtual {v5, v2}, Landroid/widget/TextView;->setInputType(I)V
+    invoke-virtual {v5, v3}, Landroid/widget/TextView;->setHintTextColor(I)V
+    const-string v3, "pass_hash (32 \u0441\u0438\u043c\u0432\u043e\u043b\u0430, \u0435\u0441\u043b\u0438 \u043e\u0442\u0434\u0435\u043b\u044c\u043d\u043e)"
+    invoke-virtual {v5, v3}, Landroid/widget/TextView;->setHint(Ljava/lang/CharSequence;)V
+
+    invoke-virtual {v5}, Landroid/view/View;->getLayoutParams()Landroid/view/ViewGroup${'$'}LayoutParams;
+    move-result-object v3
+    instance-of v4, v3, Landroid/widget/LinearLayout${'$'}LayoutParams;
+    if-eqz v4, :add_edit2
+    check-cast v3, Landroid/widget/LinearLayout${'$'}LayoutParams;
+    iget v4, p0, Lru/fourpda/client/MainActivity;->b:F
+    const/high16 v6, 0x41000000    # 8.0f
+    mul-float/2addr v4, v6
+    float-to-int v4, v4
+    iput v4, v3, Landroid/widget/LinearLayout${'$'}LayoutParams;->topMargin:I
+
+    :add_edit2
+    iget-object v3, v0, Lru/fourpda/client/v1;->h:Landroid/view/View;
+    check-cast v3, Landroid/view/ViewGroup;
+    const/4 v4, 0x3
+    invoke-virtual {v3, v5, v4}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
+
+    iget-object v3, v0, Lru/fourpda/client/C1;->m:Lru/fourpda/client/Widgets${'$'}CheckboxTextView;
+    const-string v4, "\u0421\u043a\u0440\u044b\u0442\u044b\u0439 \u0432\u0445\u043e\u0434"
+    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    invoke-virtual {v3, v2}, Lru/fourpda/client/Widgets${'$'}CheckboxTextView;->setChecked(Z)V
+    const/4 v4, 0x0
+    invoke-virtual {v3, v4}, Landroid/view/View;->setVisibility(I)V
+
+    new-instance v3, Lru/fourpda/client/MultiAccount;
+    const/4 v4, 0x2
+    invoke-direct {v3, p0, v4}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
+    iput-object v0, v3, Lru/fourpda/client/MultiAccount;->dlg:Lru/fourpda/client/C1;
+    iput-object v5, v3, Lru/fourpda/client/MultiAccount;->edit2:Landroid/widget/EditText;
+    invoke-virtual {v0, v3, v2}, Lru/fourpda/client/v1;->g(Landroid/view/View${'$'}OnClickListener;Z)V
+    invoke-virtual {v0, v2, v2, v2}, Lru/fourpda/client/v1;->c(ZZZ)V
     return-void
 .end method
 
-.method public static onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Landroid/widget/CheckBox;)V
+.method public static onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Lru/fourpda/client/Widgets${'$'}CheckboxTextView;)V
     .registers 11
     invoke-virtual {p1}, Landroid/widget/EditText;->getText()Landroid/text/Editable;
     move-result-object v0
@@ -739,7 +748,7 @@ private const val MULTI_ACCOUNT_SMALI = """
     .catch Ljava/lang/Exception; {:try_start .. :try_end} :bad_input
     if-lez v2, :bad_input
 
-    invoke-virtual {p3}, Landroid/widget/CompoundButton;->isChecked()Z
+    invoke-virtual {p3}, Lru/fourpda/client/Widgets${'$'}CheckboxTextView;->getChecked()Z
     move-result v3
     new-instance v4, Ljava/lang/StringBuilder;
     invoke-direct {v4}, Ljava/lang/StringBuilder;-><init>()V
@@ -762,54 +771,67 @@ private const val MULTI_ACCOUNT_SMALI = """
 .end method
 
 .method public static showDeleteDialog(Lru/fourpda/client/MainActivity;)V
-    .registers 9
+    .registers 13
     invoke-static {p0}, Lru/fourpda/client/MultiAccount;->loadArray(Landroid/content/Context;)Lorg/json/JSONArray;
     move-result-object v0
     invoke-virtual {v0}, Lorg/json/JSONArray;->length()I
     move-result v1
     if-lez v1, :done
-    new-array v2, v1, [Ljava/lang/CharSequence;
-    const/4 v3, 0x0
 
+    new-instance v2, Lru/fourpda/client/MultiAccount;
+    const/4 v3, 0x3
+    invoke-direct {v2, p0, v3}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
+    new-instance v5, Lru/fourpda/client/B1;
+    const/4 v4, 0x1
+    invoke-direct {v5, p0, v2, v4}, Lru/fourpda/client/B1;-><init>(Lru/fourpda/client/MainActivity;Lru/fourpda/client/B1${'$'}b;Z)V
+
+    const/4 v6, 0x0
+    const/4 v7, 0x0
+    const/4 v8, 0x0
+    const-string v9, "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430"
+    const/4 v10, 0x1
+    const/4 v11, 0x0
+    invoke-virtual/range {v5 .. v11}, Lru/fourpda/client/B1;->c(IIILjava/lang/String;ZZ)V
+
+    const/4 v3, 0x0
     :loop
     if-ge v3, v1, :show
     invoke-virtual {v0, v3}, Lorg/json/JSONArray;->optJSONObject(I)Lorg/json/JSONObject;
     move-result-object v4
-    const-string v5, "?"
-    const/4 v6, 0x0
+    const-string v6, "?"
+    const/4 v7, 0x0
     if-eqz v4, :fmt
-    const-string v7, "name"
-    invoke-virtual {v4, v7, v5}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-    move-result-object v5
-    const-string v7, "id"
-    invoke-virtual {v4, v7, v6}, Lorg/json/JSONObject;->optInt(Ljava/lang/String;I)I
-    move-result v6
+    const-string v8, "name"
+    invoke-virtual {v4, v8, v6}, Lorg/json/JSONObject;->optString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v6
+    const-string v8, "id"
+    invoke-virtual {v4, v8, v7}, Lorg/json/JSONObject;->optInt(Ljava/lang/String;I)I
+    move-result v7
 
     :fmt
     new-instance v4, Ljava/lang/StringBuilder;
     invoke-direct {v4}, Ljava/lang/StringBuilder;-><init>()V
-    invoke-virtual {v4, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    const-string v5, " ["
-    invoke-virtual {v4, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    invoke-virtual {v4, v6}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-    const-string v5, "]"
-    invoke-virtual {v4, v5}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v4, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v6, " ["
+    invoke-virtual {v4, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v4, v7}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v6, "]"
+    invoke-virtual {v4, v6}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     invoke-virtual {v4}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-    move-result-object v4
-    aput-object v4, v2, v3
+    move-result-object v9
+
+    const/4 v6, 0x3
+    move v7, v3
+    const/4 v8, 0x0
+    const/4 v10, 0x0
+    const/4 v11, 0x1
+    invoke-virtual/range {v5 .. v11}, Lru/fourpda/client/B1;->c(IIILjava/lang/String;ZZ)V
     add-int/lit8 v3, v3, 0x1
     goto :loop
 
     :show
-    invoke-static {p0}, Lru/fourpda/client/MultiAccount;->createBuilder(Landroid/content/Context;)Landroid/app/AlertDialog${'$'}Builder;
-    move-result-object v3
-    const-string v4, "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430"
-    invoke-virtual {v3, v4}, Landroid/app/AlertDialog${'$'}Builder;->setTitle(Ljava/lang/CharSequence;)Landroid/app/AlertDialog${'$'}Builder;
-    new-instance v4, Lru/fourpda/client/MultiAccount;
-    const/4 v5, 0x3
-    invoke-direct {v4, p0, v5}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
-    invoke-virtual {v3, v2, v4}, Landroid/app/AlertDialog${'$'}Builder;->setItems([Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)Landroid/app/AlertDialog${'$'}Builder;
-    invoke-virtual {v3}, Landroid/app/AlertDialog${'$'}Builder;->show()Landroid/app/AlertDialog;
+    const/4 v0, 0x0
+    invoke-virtual {v5, v0}, Lru/fourpda/client/B1;->e(Landroid/view/View;)Z
     :done
     return-void
 .end method
@@ -854,9 +876,21 @@ private const val MULTI_ACCOUNT_SMALI = """
 .end method
 
 .method public onClick(Landroid/view/View;)V
-    .registers 3
+    .registers 6
     iget-object v0, p0, Lru/fourpda/client/MultiAccount;->act:Lru/fourpda/client/MainActivity;
     if-eqz v0, :done
+    iget v1, p0, Lru/fourpda/client/MultiAccount;->mode:I
+    const/4 v2, 0x2
+    if-ne v1, v2, :open_main
+    iget-object v1, p0, Lru/fourpda/client/MultiAccount;->dlg:Lru/fourpda/client/C1;
+    if-eqz v1, :done
+    iget-object v2, v1, Lru/fourpda/client/C1;->l:Landroid/widget/EditText;
+    iget-object v3, p0, Lru/fourpda/client/MultiAccount;->edit2:Landroid/widget/EditText;
+    iget-object v1, v1, Lru/fourpda/client/C1;->m:Lru/fourpda/client/Widgets${'$'}CheckboxTextView;
+    invoke-static {v0, v2, v3, v1}, Lru/fourpda/client/MultiAccount;->onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Lru/fourpda/client/Widgets${'$'}CheckboxTextView;)V
+    return-void
+
+    :open_main
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showMainDialog(Lru/fourpda/client/MainActivity;)V
     :done
     return-void
@@ -874,19 +908,15 @@ private const val MULTI_ACCOUNT_SMALI = """
     return v0
 .end method
 
-.method public onClick(Landroid/content/DialogInterface;I)V
-    .registers 9
+.method public a(III)V
+    .registers 10
     iget-object v0, p0, Lru/fourpda/client/MultiAccount;->act:Lru/fourpda/client/MainActivity;
     if-eqz v0, :done
-    iget v1, p0, Lru/fourpda/client/MultiAccount;->mode:I
-    const/4 v2, 0x1
-    if-ne v1, v2, :check_token_mode
+    const/4 v1, 0x1
+    if-ne p1, v1, :check_actions
 
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->loadArray(Landroid/content/Context;)Lorg/json/JSONArray;
     move-result-object v1
-    invoke-virtual {v1}, Lorg/json/JSONArray;->length()I
-    move-result v2
-    if-ge p2, v2, :actions
     invoke-virtual {v1, p2}, Lorg/json/JSONArray;->optJSONObject(I)Lorg/json/JSONObject;
     move-result-object v1
     if-eqz v1, :done
@@ -905,36 +935,28 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-static {v0, v2, v3, v4, v5}, Lru/fourpda/client/MultiAccount;->switchTo(Lru/fourpda/client/MainActivity;ILjava/lang/String;Ljava/lang/String;Z)V
     return-void
 
-    :actions
-    if-ne p2, v2, :act_pwd
+    :check_actions
+    const/4 v2, 0x2
+    if-ne p1, v2, :check_del
+    if-ne p2, v1, :act_pwd
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showTokenDialog(Lru/fourpda/client/MainActivity;)V
     return-void
     :act_pwd
-    add-int/lit8 v3, v2, 0x1
-    if-ne p2, v3, :act_copy
+    if-ne p2, v2, :act_copy
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->startPasswordLogin(Lru/fourpda/client/MainActivity;)V
     return-void
     :act_copy
-    add-int/lit8 v3, v2, 0x2
-    if-ne p2, v3, :act_del
+    const/4 v1, 0x3
+    if-ne p2, v1, :act_del
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->copyCurrentToken(Lru/fourpda/client/MainActivity;)V
     return-void
     :act_del
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showDeleteDialog(Lru/fourpda/client/MainActivity;)V
     return-void
 
-    :check_token_mode
-    const/4 v2, 0x2
-    if-ne v1, v2, :check_del_mode
-    iget-object v1, p0, Lru/fourpda/client/MultiAccount;->edit1:Landroid/widget/EditText;
-    iget-object v2, p0, Lru/fourpda/client/MultiAccount;->edit2:Landroid/widget/EditText;
-    iget-object v3, p0, Lru/fourpda/client/MultiAccount;->check1:Landroid/widget/CheckBox;
-    invoke-static {v0, v1, v2, v3}, Lru/fourpda/client/MultiAccount;->onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Landroid/widget/CheckBox;)V
-    return-void
-
-    :check_del_mode
-    const/4 v2, 0x3
-    if-ne v1, v2, :done
+    :check_del
+    const/4 v1, 0x3
+    if-ne p1, v1, :done
     invoke-static {v0, p2}, Lru/fourpda/client/MultiAccount;->deleteAt(Lru/fourpda/client/MainActivity;I)V
 
     :done
