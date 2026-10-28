@@ -7,7 +7,7 @@
     <color name="button_text">#ff5f65d4</color>
     <color name="start_btn_text">#ff5f65d4</color>
     <color name="start_button_bg">#ffffffff</color>
-    <color name="bb_link">#ff5f65d4</color>
+    <color name="bb_link">#ff0072bc</color>
     <color name="pressed">#ffc9cbf2</color>
     <color name="refresh_arrow_2">#ff5f65d4</color>
     <color name="comments_count_bg">#ff5f65d4</color>
@@ -33,7 +33,7 @@
     <color name="zn_brend_alpha">#402c2f66</color>
     <color name="zn_status_bar">#ff1e2048</color>
     <color name="zn_button_text">#ffb0b0b0</color>
-    <color name="zn_bb_link">#ff9aa0ef</color>
+    <color name="zn_bb_link">#ff0060b0</color>
     <color name="zn_pressed">#ff5f65d4</color>
     <color name="zn_refresh_arrow_2">#ff2c2f66</color>
     <color name="zn_start_btn_text">#ff2c2f66</color>
