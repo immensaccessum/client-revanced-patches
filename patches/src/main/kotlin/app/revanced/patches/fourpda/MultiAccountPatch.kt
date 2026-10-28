@@ -486,7 +486,7 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-virtual {v2, v4}, Landroid/os/Handler;->removeMessages(I)V
     invoke-static {v1}, Lru/fourpda/client/v;->b(Z)V
     sget-object v4, Lru/fourpda/client/F;->E:Lru/fourpda/client/s1${'$'}b;
-    invoke-virtual {v4, v3}, Lru/fourpda/client/s1${'$'}b;->c(Ljava/lang/Object;)V
+    invoke-virtual {v4, v3}, Lru/fourpda/client/s1${'$'}b;->c(Ljava/lang/Object;)Z
     invoke-virtual {v0}, Lru/fourpda/client/F;->f0()V
     const/16 v3, 0x9
     invoke-virtual {v2, v3}, Landroid/os/Handler;->sendEmptyMessage(I)Z
@@ -556,7 +556,7 @@ private const val MULTI_ACCOUNT_SMALI = """
     const/4 v1, 0x0
     invoke-static {v1}, Lru/fourpda/client/v;->b(Z)V
     sget-object v3, Lru/fourpda/client/F;->E:Lru/fourpda/client/s1${'$'}b;
-    invoke-virtual {v3, v2}, Lru/fourpda/client/s1${'$'}b;->c(Ljava/lang/Object;)V
+    invoke-virtual {v3, v2}, Lru/fourpda/client/s1${'$'}b;->c(Ljava/lang/Object;)Z
     iget-object v2, v0, Lru/fourpda/client/F;->m:Lru/fourpda/client/F${'$'}d;
     const/16 v3, 0x9
     invoke-virtual {v2, v3}, Landroid/os/Handler;->sendEmptyMessage(I)Z
