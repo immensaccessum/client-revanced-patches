@@ -56,7 +56,20 @@ private const val QMS_TAGS_SMALI = """
     new-instance v0, Landroid/view/View;
     invoke-direct {v0, p0}, Landroid/view/View;-><init>(Landroid/content/Context;)V
     invoke-virtual {v0, p1}, Landroid/view/View;->setId(I)V
+    instance-of v1, p0, Lru/fourpda/client/MainActivity;
+    if-eqz v1, :raw
+    move-object v1, p0
+    check-cast v1, Lru/fourpda/client/MainActivity;
+    iget-object v1, v1, Lru/fourpda/client/MainActivity;->g:Lru/fourpda/client/k1;
+    if-eqz v1, :raw
+    invoke-virtual {v1, p2}, Lru/fourpda/client/k1;->f(I)Landroid/graphics/drawable/Drawable;
+    move-result-object v1
+    if-eqz v1, :raw
+    invoke-virtual {v0, v1}, Landroid/view/View;->setBackgroundDrawable(Landroid/graphics/drawable/Drawable;)V
+    goto :styled
+    :raw
     invoke-virtual {v0, p2}, Landroid/view/View;->setBackgroundResource(I)V
+    :styled
     const/4 v1, 0x1
     invoke-virtual {v0, v1}, Landroid/view/View;->setClickable(Z)V
     const/4 v1, 0x0
