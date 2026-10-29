@@ -98,8 +98,9 @@ private const val ARTICLE_FIX_HELPER_SMALI = """
 """
 
 val fixArticleCommentsPatch = bytecodePatch(
-    name = "Ремонт комментариев и опросов в статьях",
-    description = "Исправляет отображение комментариев в статьях (предотвращает обрыв списка при удаленных комментариях и восстанавливает древовидность ответов) и включает отображение результатов закрытых опросов",
+    name = "Fix article comments and polls",
+    description = "Fixes comment rendering in articles (prevents list truncation on deleted comments and restores reply tree hierarchy) and displays results for closed polls.",
+    use = true,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

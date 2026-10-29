@@ -64,8 +64,9 @@ private const val ROUND_XML =
 """
 
 val iconGradientPatch = resourcePatch(
-    name = "Градиент иконки",
-    description = "Синий круг на иконке рабочего стола заменён на градиент ReVanced. Белый знак и белое поле вокруг круга остаются. На круглой иконке градиентом красится сам знак.",
+    name = "Gradient launcher icon",
+    description = "Replaces the blue circle background in the app launcher icon with a color gradient.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

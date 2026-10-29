@@ -127,8 +127,9 @@ private const val MOVE_TICKETS_SMALI = """
 """
 
 val newTabOnTopPatch = bytecodePatch(
-    name = "Новая вкладка сверху и тикеты в шторке",
-    description = "В левой шторке новая вкладка появляется сразу под «Открытые вкладки», а кнопка «Тикеты» переносится из подменю профиля под «Упоминания».",
+    name = "Drawer tab layout tweaks",
+    description = "Places the 'New tab' button directly under 'Open tabs', and moves 'Tickets' from the profile submenu into the main drawer section below 'Mentions'.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

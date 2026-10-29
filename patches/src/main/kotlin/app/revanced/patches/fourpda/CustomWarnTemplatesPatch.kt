@@ -1150,8 +1150,9 @@ private const val WARN_TEMPLATES_SMALI = """
 """
 
 val customWarnTemplatesPatch = bytecodePatch(
-    name = "Свои шаблоны наказаний (JSON)",
-    description = "Добавляет в окно «Наказать» переключатель «Свои шаблоны» и кнопку «JSON ⚙» для редактирования, копирования и подмены списка уровней и шаблонов через нативное модальное окно JSON.",
+    name = "Custom moderation templates (JSON)",
+    description = "Adds a 'Custom templates' toggle and a 'JSON ⚙' button to the moderation dialog to edit, copy, and override warning levels and templates via native modal JSON editor.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

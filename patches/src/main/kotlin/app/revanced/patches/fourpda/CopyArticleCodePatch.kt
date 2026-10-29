@@ -158,8 +158,8 @@ private const val ARTICLE_BB_SMALI = """
     return-void
 .end method
 
-.method public static quote(Ljava/lang/StringBuilder;Ljava/lang/String;Ljava/lang/String;)V
-    .registers 5
+.method public static quote(Ljava/lang/StringBuilder;Ljava/lang/String;ILjava/lang/String;)V
+    .locals 2
     const-string v0, "[quote name=\""
     invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     if-eqz p1, :noname
@@ -173,10 +173,15 @@ private const val ARTICLE_BB_SMALI = """
     move-result-object p1
     invoke-virtual {p0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     :noname
+    if-lez p2, :nopost
+    const-string v0, "\" post=\""
+    invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    :nopost
     const-string v0, "\"]\u000a"
     invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    if-eqz p2, :close
-    invoke-virtual {p0, p2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    if-eqz p3, :close
+    invoke-virtual {p0, p3}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     :close
     const-string v0, "\u000a[/quote]\u000a"
     invoke-virtual {p0, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -184,7 +189,7 @@ private const val ARTICLE_BB_SMALI = """
 .end method
 
 .method public static copyPost(Lru/fourpda/client/V0${'$'}z;Lru/fourpda/client/MainActivity;)V
-    .registers 5
+    .locals 4
     if-eqz p1, :abort
     if-eqz p0, :missing
     sget-object v0, Lru/fourpda/client/ArticleBb;->posts:Ljava/util/WeakHashMap;
@@ -196,7 +201,8 @@ private const val ARTICLE_BB_SMALI = """
     new-instance v1, Ljava/lang/StringBuilder;
     invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
     iget-object v2, p0, Lru/fourpda/client/V0${'$'}z;->c:Ljava/lang/String;
-    invoke-static {v1, v2, v0}, Lru/fourpda/client/ArticleBb;->quote(Ljava/lang/StringBuilder;Ljava/lang/String;Ljava/lang/String;)V
+    iget v3, p0, Lru/fourpda/client/V0${'$'}z;->a:I
+    invoke-static {v1, v2, v3, v0}, Lru/fourpda/client/ArticleBb;->quote(Ljava/lang/StringBuilder;Ljava/lang/String;ILjava/lang/String;)V
     invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
     move-result-object v0
     const-string v1, "Пост скопирован"
@@ -213,7 +219,7 @@ private const val ARTICLE_BB_SMALI = """
 .end method
 
 .method public static copyPage(Lru/fourpda/client/V0;Lru/fourpda/client/MainActivity;)V
-    .registers 9
+    .locals 8
     if-nez p1, :haveAct
     return-void
     :haveAct
@@ -236,6 +242,7 @@ private const val ARTICLE_BB_SMALI = """
     move-result-object v4
     check-cast v4, Lru/fourpda/client/V0${'$'}z;
     iget-object v5, v4, Lru/fourpda/client/V0${'$'}z;->c:Ljava/lang/String;
+    iget v7, v4, Lru/fourpda/client/V0${'$'}z;->a:I
     sget-object v6, Lru/fourpda/client/ArticleBb;->posts:Ljava/util/WeakHashMap;
     if-eqz v6, :nullbody
     invoke-virtual {v6, v4}, Ljava/util/WeakHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -246,17 +253,17 @@ private const val ARTICLE_BB_SMALI = """
     :nullbody
     const/4 v6, 0x0
     :text
-    invoke-static {v2, v5, v6}, Lru/fourpda/client/ArticleBb;->quote(Ljava/lang/StringBuilder;Ljava/lang/String;Ljava/lang/String;)V
+    invoke-static {v2, v5, v7, v6}, Lru/fourpda/client/ArticleBb;->quote(Ljava/lang/StringBuilder;Ljava/lang/String;ILjava/lang/String;)V
     add-int/lit8 v3, v3, 0x1
     goto :loop
     :finish
     invoke-virtual {v2}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
     move-result-object v0
-    const-string v1, "Сообщения скопированы"
+    const-string v1, "Посты скопированы"
     invoke-static {p1, v0, v1}, Lru/fourpda/client/s1;->a(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V
     return-void
     :empty
-    const-string v0, "На странице нет сообщений"
+    const-string v0, "На странице нет постов"
     const/4 v1, 0x0
     invoke-static {p1, v0, v1}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
     move-result-object v0
@@ -264,10 +271,10 @@ private const val ARTICLE_BB_SMALI = """
     return-void
 .end method
 """
-
 val copyArticleCodePatch = bytecodePatch(
-    name = "Скопировать код",
-    description = "В меню статьи — код статьи. В меню поста — цитата поста. В меню темы — цитаты сообщений открытой страницы, без шапки. Берётся уже загруженный текст, без нового запроса.",
+    name = "Copy BBCode",
+    description = "Adds 'Copy code' to article menu, 'Copy post' to post menu, and 'Copy posts' to topic menu to copy BBCode quotes using cached page data without new server requests.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
@@ -329,7 +336,7 @@ val copyArticleCodePatch = bytecodePatch(
             aboutItem + 1,
             """
             const/16 v2, 0x9
-            const-string v4, "Скопировать сообщения"
+            const-string v4, "Скопировать посты"
             invoke-virtual {v8, v5, v5, v2, v4}, Lru/fourpda/client/B1;->a(IIILjava/lang/String;)V
             """.trimIndent(),
         )

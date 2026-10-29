@@ -34,8 +34,9 @@ private val capMethods = listOf(
 )
 
 val pageSizePatch = bytecodePatch(
-    name = "Страница по 500",
-    description = "В настройках «Количество постов» и «Количество тем», и в меню тикетов «Тикетов на странице»: потолок 500, шаг плюса и минуса 10.",
+    name = "Increase page limit",
+    description = "Increases maximum posts, topics, and tickets per page up to 500 with a +/- step of 10.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

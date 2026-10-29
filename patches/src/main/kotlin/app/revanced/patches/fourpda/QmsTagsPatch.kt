@@ -249,8 +249,9 @@ private const val QMS_TAGS_SMALI = """
 """
 
 val qmsTagsPatch = bytecodePatch(
-    name = "Теги QMS",
-    description = "В панели тегов QMS: размер, цвет, ссылка, списки, спойлер, выравнивание, индекс и оффтоп. Панель прокручивается вбок. Скрытие и метки модераторов не добавляются.",
+    name = "Extended QMS toolbar",
+    description = "Adds extra BBCode formatting tags (size, color, link, lists, spoiler, alignment, sub/sup, off-topic) with horizontal scrolling to the QMS editor.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

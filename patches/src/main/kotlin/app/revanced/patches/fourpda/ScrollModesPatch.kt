@@ -293,8 +293,9 @@ private const val SCROLL_MODES_SMALI = """
 """
 
 val scrollModesPatch = bytecodePatch(
-    name = "Прокрутка вместе",
-    description = "В настройках «Режим прокрутки главного окна» можно включить несколько вариантов сразу: обычный, ползунок и кнопки вверх/вниз.",
+    name = "Combined scroll modes",
+    description = "Allows enabling multiple scroll modes simultaneously (standard scroll, scrollbar thumb, and up/down buttons) in main settings.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

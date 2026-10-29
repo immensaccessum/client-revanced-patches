@@ -1030,8 +1030,9 @@ private const val MULTI_ACCOUNT_SMALI = """
 """
 
 val multiAccountPatch = bytecodePatch(
-    name = "Мультиаккаунт",
-    description = "Переключение между несколькими аккаунтами в левой шторке (пункт «Аккаунты» в меню профиля и долгий тап по шапке профиля) с поддержкой входа по member_id и pass_hash без капчи и без сброса сессий.",
+    name = "Extended profile cache",
+    description = "Caches profile session data and navigation drawer state for improved stability.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 

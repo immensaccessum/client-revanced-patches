@@ -72,10 +72,11 @@ private val QMS_FIX_HELPER_SMALI = """
     return-void
 .end method
 
-.method public static shouldAutoScroll(Landroid/widget/AbsListView;)I
+.method public static shouldAutoScroll(Landroid/widget/AdapterView;)I
     .locals 5
+    :try_start_0
     if-nez p0, :cond_check
-    const/4 v0, 0x0
+    const/4 v0, 0x2
     return v0
 
     :cond_check
@@ -90,28 +91,40 @@ private val QMS_FIX_HELPER_SMALI = """
     return v0
 
     :cond_check_pos
-    invoke-virtual {p0}, Landroid/widget/AbsListView;->getCount()I
+    invoke-virtual {p0}, Landroid/widget/AdapterView;->getCount()I
     move-result v0
-    invoke-virtual {p0}, Landroid/widget/AbsListView;->getLastVisiblePosition()I
+    if-eqz v0, :cond_ret_default
+    invoke-virtual {p0}, Landroid/widget/AdapterView;->getLastVisiblePosition()I
     move-result v1
-    if-lez v0, :cond_no
     add-int/lit8 v0, v0, -0x2
-    if-lt v1, v0, :cond_no
-    const/4 v0, 0x2
+    if-ge v1, v0, :cond_ret_default
+    const/4 v0, 0x1
     return v0
 
-    :cond_no
-    const/4 v0, 0x0
+    :cond_ret_default
+    const/4 v0, 0x2
+    return v0
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    const/4 v0, 0x2
     return v0
 .end method
 
 .method public static deleteMessageInPlace(Lru/fourpda/client/L0${'$'}m;)V
     .locals 6
     :try_start_0
+    if-nez p0, :cond_check_m
+    return-void
+
+    :cond_check_m
     iget-object v0, p0, Lru/fourpda/client/L0${'$'}m;->j:Lru/fourpda/client/w0;
     instance-of v1, v0, Lru/fourpda/client/M0;
     if-nez v1, :cond_m0
+    if-eqz v0, :cond_ret
     invoke-virtual {v0}, Lru/fourpda/client/w0;->z()V
+    :cond_ret
     return-void
 
     :cond_m0
@@ -137,10 +150,10 @@ private val QMS_FIX_HELPER_SMALI = """
     invoke-virtual {v1, v4}, Landroid/util/SparseArray;->removeAt(I)V
     invoke-virtual {v0}, Lru/fourpda/client/M0;->q0()V
 
-    const/4 v5, 0x0
+    const/4 v5, 0x1
     invoke-virtual {v0, v5}, Lru/fourpda/client/w0;->a0(Z)V
 
-    if-gt v4, v2, :cond_restore
+    if-ge v4, v2, :cond_restore
     add-int/lit8 v2, v2, -0x1
 
     :cond_restore
@@ -150,9 +163,10 @@ private val QMS_FIX_HELPER_SMALI = """
     invoke-virtual {v0, v5, v3}, Lru/fourpda/client/w0;->Y(II)V
     return-void
     :try_end_0
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
 
     :catch_0
+    if-eqz p0, :cond_err_done
     iget-object p0, p0, Lru/fourpda/client/L0${'$'}m;->j:Lru/fourpda/client/w0;
     if-eqz p0, :cond_err_done
     invoke-virtual {p0}, Lru/fourpda/client/w0;->z()V
@@ -162,8 +176,9 @@ private val QMS_FIX_HELPER_SMALI = """
 """
 
 val fixQmsBugsPatch = bytecodePatch(
-    name = "Исправление ошибок в QMS",
-    description = "Исправляет сброс позиции при удалении сообщения (удаление на месте без перезагрузки), улетание экрана вниз при переходе к сообщению из поиска, и подмену результатов поиска обычной перепиской",
+    name = "Fix QMS bugs",
+    description = "Fixes scroll reset when deleting messages (in-place removal without reloading conversation), prevents screen snapping down when jumping to search results, and prevents search results from being overwritten by chat messages.",
+    use = true,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
@@ -243,7 +258,7 @@ val fixQmsBugsPatch = bytecodePatch(
         viMethod.addInstructions(
             const2Idx + 1,
             """
-            invoke-static {p1}, $QMS_FIX_HELPER->shouldAutoScroll(Landroid/widget/AbsListView;)I
+            invoke-static {p1}, $QMS_FIX_HELPER->shouldAutoScroll(Landroid/widget/AdapterView;)I
             move-result p2
             """.trimIndent(),
         )

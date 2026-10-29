@@ -196,7 +196,8 @@ private const val STATUS_LINE_SMALI = """
 
 val showStatusImmediatelyPatch = bytecodePatch(
     name = "Show status immediately",
-    description = "Нижняя строка статуса появляется сразу и остаётся ещё секунду после загрузки.",
+    description = "Shows the bottom status bar immediately on loading and keeps it visible for an extra second after loading completes.",
+    use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
