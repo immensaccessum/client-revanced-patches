@@ -442,7 +442,7 @@ private const val MULTI_ACCOUNT_SMALI = """
 .end method
 
 .method public static switchTo(Lru/fourpda/client/MainActivity;ILjava/lang/String;Ljava/lang/String;Z)V
-    .registers 11
+    .locals 6
     invoke-static {p0}, Lru/fourpda/client/MultiAccount;->syncCurrent(Landroid/content/Context;)V
     iget-object v0, p0, Lru/fourpda/client/MainActivity;->a:Lru/fourpda/client/MainLayout;
     const/4 v1, 0x0
@@ -472,19 +472,52 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-interface {v0}, Landroid/content/SharedPreferences${'$'}Editor;->commit()Z
 
     sget-object v0, Lru/fourpda/client/F;->x:Lru/fourpda/client/F;
-    if-eqz v0, :toast
+    if-eqz v0, :reset_badges
+    iput p1, v0, Lru/fourpda/client/F;->q:I
+
     iget-object v2, v0, Lru/fourpda/client/F;->s:Lru/fourpda/client/m1;
     const/4 v3, 0x0
-    if-eqz v2, :reset_r
+    if-eqz v2, :clear_tables
     invoke-virtual {v2}, Lru/fourpda/client/m1;->b()V
     iput-object v3, v0, Lru/fourpda/client/F;->s:Lru/fourpda/client/m1;
 
-    :reset_r
+    :clear_tables
     iput-object v3, v0, Lru/fourpda/client/F;->r:Lru/fourpda/client/F${'$'}h;
+    invoke-static {}, Lru/fourpda/client/v;->E()V
+    const/4 v2, 0x2
+    invoke-static {v2, v1}, Lru/fourpda/client/v;->s(II)V
+    invoke-static {v1}, Lru/fourpda/client/v;->b(Z)V
+
+    :reset_badges
+    sget v2, Lru/fourpda/client/e1;->c3:I
+    invoke-virtual {p0, v2}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+    move-result-object v2
+    if-eqz v2, :reset_qms
+    const/16 v4, 0x8
+    invoke-virtual {v2, v4}, Landroid/view/View;->setVisibility(I)V
+
+    :reset_qms
+    sget v2, Lru/fourpda/client/e1;->e3:I
+    invoke-virtual {p0, v2}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+    move-result-object v2
+    if-eqz v2, :reset_men
+    const/16 v4, 0x8
+    invoke-virtual {v2, v4}, Landroid/view/View;->setVisibility(I)V
+
+    :reset_men
+    sget v2, Lru/fourpda/client/e1;->d3:I
+    invoke-virtual {p0, v2}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+    move-result-object v2
+    if-eqz v2, :reconnect
+    const/16 v4, 0x8
+    invoke-virtual {v2, v4}, Landroid/view/View;->setVisibility(I)V
+
+    :reconnect
+    if-eqz v0, :toast
+    const/4 v3, 0x0
     iget-object v2, v0, Lru/fourpda/client/F;->m:Lru/fourpda/client/F${'$'}d;
     const/16 v4, 0xd
     invoke-virtual {v2, v4}, Landroid/os/Handler;->removeMessages(I)V
-    invoke-static {v1}, Lru/fourpda/client/v;->b(Z)V
     sget-object v4, Lru/fourpda/client/F;->E:Lru/fourpda/client/s1${'$'}b;
     invoke-virtual {v4, v3}, Lru/fourpda/client/s1${'$'}b;->c(Ljava/lang/Object;)Z
     invoke-virtual {v0}, Lru/fourpda/client/F;->f0()V
