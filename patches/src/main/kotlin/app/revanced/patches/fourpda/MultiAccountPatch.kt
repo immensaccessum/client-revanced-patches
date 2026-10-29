@@ -250,99 +250,13 @@ private const val MULTI_ACCOUNT_SMALI = """
     sget v0, Lru/fourpda/client/e1;->O2:I
     invoke-virtual {p0, v0}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
     move-result-object v0
-    if-eqz v0, :check_menu
+    if-eqz v0, :done
     const/4 v1, 0x1
     invoke-virtual {v0, v1}, Landroid/view/View;->setClickable(Z)V
     new-instance v1, Lru/fourpda/client/MultiAccount;
     const/4 v2, 0x0
     invoke-direct {v1, p0, v2}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
     invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View${'$'}OnClickListener;)V
-
-    :check_menu
-    sget v0, Lru/fourpda/client/e1;->l3:I
-    invoke-virtual {p0, v0}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
-    move-result-object v0
-    instance-of v1, v0, Landroid/widget/LinearLayout;
-    if-eqz v1, :done
-    check-cast v0, Landroid/widget/LinearLayout;
-
-    sget v1, Lru/fourpda/client/e1;->k3:I
-    invoke-virtual {v0, v1}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-    move-result-object v1
-    instance-of v2, v1, Landroid/widget/TextView;
-    if-eqz v2, :done
-    check-cast v1, Landroid/widget/TextView;
-
-    const v2, 0x7f060fff
-    invoke-virtual {v0, v2}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-    move-result-object v3
-    instance-of v4, v3, Landroid/widget/TextView;
-    if-eqz v4, :create_row
-    check-cast v3, Landroid/widget/TextView;
-    goto :style_row
-
-    :create_row
-    new-instance v3, Landroid/widget/TextView;
-    invoke-direct {v3, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
-    invoke-virtual {v3, v2}, Landroid/view/View;->setId(I)V
-    invoke-virtual {v1}, Landroid/view/View;->getLayoutParams()Landroid/view/ViewGroup${'$'}LayoutParams;
-    move-result-object v4
-    const/4 v5, -0x1
-    iget v4, v4, Landroid/view/ViewGroup${'$'}LayoutParams;->height:I
-    new-instance v6, Landroid/widget/LinearLayout${'$'}LayoutParams;
-    invoke-direct {v6, v5, v4}, Landroid/widget/LinearLayout${'$'}LayoutParams;-><init>(II)V
-    invoke-virtual {v3, v6}, Landroid/view/View;->setLayoutParams(Landroid/view/ViewGroup${'$'}LayoutParams;)V
-
-    invoke-virtual {v1}, Landroid/view/View;->getPaddingLeft()I
-    move-result v4
-    invoke-virtual {v1}, Landroid/view/View;->getPaddingRight()I
-    move-result v5
-    const/4 v6, 0x0
-    invoke-virtual {v3, v4, v6, v5, v6}, Landroid/view/View;->setPadding(IIII)V
-    invoke-virtual {v1}, Landroid/widget/TextView;->getGravity()I
-    move-result v4
-    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setGravity(I)V
-    invoke-virtual {v1}, Landroid/widget/TextView;->getCompoundDrawablePadding()I
-    move-result v4
-    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setCompoundDrawablePadding(I)V
-    const/4 v4, 0x2
-    const/high16 v5, 0x41800000    # 16.0f
-    invoke-virtual {v3, v4, v5}, Landroid/widget/TextView;->setTextSize(IF)V
-    invoke-virtual {v3, v6}, Landroid/widget/TextView;->setIncludeFontPadding(Z)V
-    const/4 v4, 0x1
-    invoke-virtual {v3, v4}, Landroid/view/View;->setClickable(Z)V
-    const-string v4, "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u044b"
-    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
-    new-instance v4, Lru/fourpda/client/MultiAccount;
-    invoke-direct {v4, p0, v6}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
-    invoke-virtual {v3, v4}, Landroid/view/View;->setOnClickListener(Landroid/view/View${'$'}OnClickListener;)V
-
-    invoke-virtual {v0, v1}, Landroid/view/ViewGroup;->indexOfChild(Landroid/view/View;)I
-    move-result v4
-    if-ltz v4, :add_end
-    invoke-virtual {v0, v3, v4}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
-    goto :style_row
-    :add_end
-    invoke-virtual {v0, v3}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
-
-    :style_row
-    sget v4, Lru/fourpda/client/k1${'$'}a;->U:I
-    invoke-virtual {v3, v4}, Landroid/widget/TextView;->setTextColor(I)V
-    iget-object v4, p0, Lru/fourpda/client/MainActivity;->g:Lru/fourpda/client/k1;
-    if-eqz v4, :show_row
-    sget v5, Lru/fourpda/client/R${'$'}drawable;->nav_item:I
-    invoke-virtual {v4, v5}, Lru/fourpda/client/k1;->f(I)Landroid/graphics/drawable/Drawable;
-    move-result-object v5
-    invoke-virtual {v3, v5}, Landroid/view/View;->setBackgroundDrawable(Landroid/graphics/drawable/Drawable;)V
-    sget v5, Lru/fourpda/client/R${'$'}drawable;->ic_nav_profile:I
-    invoke-virtual {v4, v5}, Lru/fourpda/client/k1;->f(I)Landroid/graphics/drawable/Drawable;
-    move-result-object v5
-    const/4 v6, 0x0
-    invoke-virtual {v3, v5, v6, v6, v6}, Landroid/widget/TextView;->setCompoundDrawablesWithIntrinsicBounds(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V
-
-    :show_row
-    const/4 v4, 0x0
-    invoke-virtual {v3, v4}, Landroid/view/View;->setVisibility(I)V
 
     :done
     return-void
@@ -923,9 +837,10 @@ private const val MULTI_ACCOUNT_SMALI = """
     .registers 8
     iget-object v0, p0, Lru/fourpda/client/MultiAccount;->act:Lru/fourpda/client/MainActivity;
     if-eqz v0, :done
+
     iget v1, p0, Lru/fourpda/client/MultiAccount;->mode:I
-    const/4 v2, 0x2
-    if-ne v1, v2, :handle_multi_tap
+    if-eqz v1, :handle_avatar
+
     iget-object v1, p0, Lru/fourpda/client/MultiAccount;->dlg:Lru/fourpda/client/C1;
     if-eqz v1, :done
     iget-object v2, v1, Lru/fourpda/client/C1;->l:Landroid/widget/EditText;
@@ -934,20 +849,21 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-static {v0, v2, v3, v1}, Lru/fourpda/client/MultiAccount;->onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Lru/fourpda/client/Widgets${'$'}CheckboxTextView;)V
     return-void
 
-    :handle_multi_tap
+    :handle_avatar
     invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
     move-result-wide v1
     sget-wide v3, Lru/fourpda/client/MultiAccount;->lastClickTime:J
-    sub-long v3, v1, v3
     sput-wide v1, Lru/fourpda/client/MultiAccount;->lastClickTime:J
+    sub-long v3, v1, v3
 
     const-wide/16 v1, 0x258
     cmp-long v5, v3, v1
-    if-lez v5, :reset_tap
+    if-gtz v5, :slow_tap
 
     sget v1, Lru/fourpda/client/MultiAccount;->clickCount:I
     add-int/lit8 v1, v1, 0x1
     sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
+
     const/4 v2, 0x5
     if-ge v1, v2, :done
 
@@ -956,7 +872,7 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showMainDialog(Lru/fourpda/client/MainActivity;)V
     return-void
 
-    :reset_tap
+    :slow_tap
     const/4 v1, 0x1
     sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
 
