@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.writer.builder.DexBuilder
@@ -173,6 +174,27 @@ private val QMS_FIX_HELPER_SMALI = """
     :cond_err_done
     return-void
 .end method
+
+.method public static filterDialogId(Lru/fourpda/client/M0;I)I
+    .locals 1
+    :try_start_0
+    if-nez p0, :cond_check
+    return p1
+
+    :cond_check
+    iget-object v0, p0, Lru/fourpda/client/M0;->E:Ljava/lang/String;
+    if-eqz v0, :cond_ret
+    const/4 v0, -0x1
+    return v0
+
+    :cond_ret
+    return p1
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    return p1
+.end method
 """
 
 val fixQmsBugsPatch = bytecodePatch(
@@ -193,6 +215,10 @@ val fixQmsBugsPatch = bytecodePatch(
         pField.accessFlags = (pField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
         val q0Method = m0Class.methods.firstOrNull { it.name == "q0" } ?: error("не найден метод M0.q0")
         q0Method.accessFlags = (q0Method.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
+        val eField = m0Class.fields.firstOrNull { it.name == "E" } ?: error("не найдено поле M0.E")
+        eField.accessFlags = (eField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
+        val vField = m0Class.fields.firstOrNull { it.name == "V" } ?: error("не найдено поле M0.V")
+        vField.accessFlags = (vField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
 
         val w0Class = proxy(classDefs[W0_CLASS] ?: error("в apk нет w0")).mutableClass
         val xField = w0Class.fields.firstOrNull { it.name == "x" } ?: error("не найдено поле w0.x")
@@ -264,36 +290,35 @@ val fixQmsBugsPatch = bytecodePatch(
         )
 
         // --- 3. Защита экрана результатов поиска ---
-        // 3A. В M0.getView отключаем догрузку 60 сообщений переписки, если E != null
-        val getViewMethod = m0Class.methods.firstOrNull { it.name == "getView" } ?: error("не найден метод M0.getView")
-        val const30Idx = getViewMethod.implementation!!.instructions.indexOfFirst { instruction ->
-            instruction.opcode == Opcode.CONST_16 && (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 30
+        // 3A. В M0.n0 при инициализации поиска устанавливаем V = true (чтобы предотвратить догрузку сообщений)
+        val n0Method = m0Class.methods.firstOrNull { it.name == "n0" } ?: error("не найден метод M0.n0")
+        val uFieldIdx = n0Method.implementation!!.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.IPUT_BOOLEAN && instruction.field()?.name == "U"
         }
-        if (const30Idx < 0) {
-            error("не найдена инструкция const/16 30 в M0.getView")
+        if (uFieldIdx < 0) {
+            error("не найдена инструкция iput-boolean U в M0.n0")
         }
-        getViewMethod.addInstructions(
-            const30Idx,
-            """
-            iget-object v0, p0, $M0_CLASS->E:Ljava/lang/String;
-            if-eqz v0, :cond_search_skip
-            return-object p2
-            :cond_search_skip
-            """.trimIndent(),
+        val uInstr = n0Method.implementation!!.instructions[uFieldIdx] as TwoRegisterInstruction
+        n0Method.addInstructions(
+            uFieldIdx + 1,
+            "iput-boolean v${uInstr.registerA}, v${uInstr.registerB}, $M0_CLASS->V:Z",
         )
 
         // 3B. В M0$b.b игнорируем live-события диалога на экране поиска
         val m0bClass = proxy(classDefs[M0_B_CLASS] ?: error("в apk нет M0\$b")).mutableClass
         val bMethod = m0bClass.methods.firstOrNull { it.name == "b" } ?: error("не найден метод M0\$b.b")
+        val mFieldIdx = bMethod.implementation!!.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.IGET && instruction.field()?.name == "M"
+        }
+        if (mFieldIdx < 0) {
+            error("не найдена инструкция iget M в M0\$b.b")
+        }
+        val mInstr = bMethod.implementation!!.instructions[mFieldIdx] as TwoRegisterInstruction
         bMethod.addInstructions(
-            0,
+            mFieldIdx + 1,
             """
-            iget-object v0, p0, $M0_B_CLASS->a:$M0_CLASS
-            iget-object v0, v0, $M0_CLASS->E:Ljava/lang/String;
-            if-eqz v0, :cond_search_event_skip
-            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-            return-object v0
-            :cond_search_event_skip
+            invoke-static {v${mInstr.registerB}, v${mInstr.registerA}}, $QMS_FIX_HELPER->filterDialogId($M0_CLASS;I)I
+            move-result v${mInstr.registerA}
             """.trimIndent(),
         )
     }
