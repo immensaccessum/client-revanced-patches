@@ -317,7 +317,7 @@ val fixQmsBugsPatch = bytecodePatch(
         bMethod.addInstructions(
             mFieldIdx + 1,
             """
-            invoke-static {v${mInstr.registerB}, v${mInstr.registerA}}, $QMS_FIX_HELPER->filterDialogId($M0_CLASS;I)I
+            invoke-static {v${mInstr.registerB}, v${mInstr.registerA}}, $QMS_FIX_HELPER->filterDialogId(${M0_CLASS}I)I
             move-result v${mInstr.registerA}
             """.trimIndent(),
         )
