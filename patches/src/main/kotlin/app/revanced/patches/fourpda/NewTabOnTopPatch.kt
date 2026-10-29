@@ -1,7 +1,7 @@
 package app.revanced.patches.fourpda
 
 import app.revanced.patcher.extensions.addInstructions
-import app.revanced.patcher.extensions.removeInstructions
+import app.revanced.patcher.extensions.replaceInstruction
 import app.revanced.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -24,9 +24,6 @@ private const val LAYOUT = "Lru/fourpda/client/MainLayout;"
 private const val MAIN_ACTIVITY = "Lru/fourpda/client/MainActivity;"
 private const val RES_IDS = "Lru/fourpda/client/e1;"
 private const val MOVE_TICKETS = "Lru/fourpda/client/MoveTicketsTab;"
-
-// В nav_tabs восемь постоянных строк: семь пунктов меню (включая Тикеты) и подпись «Открытые вкладки».
-private const val OPEN_TABS = 8
 
 private fun Instruction.calledMethod(): MethodReference? =
     (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -61,7 +58,7 @@ private const val MOVE_TICKETS_SMALI = """
 .end method
 
 .method public static move(Landroid/view/View;)V
-    .registers 4
+    .registers 5
     :try_start_0
     if-eqz p0, :catchall_0
 
@@ -70,34 +67,57 @@ private const val MOVE_TICKETS_SMALI = """
     instance-of v1, v0, Landroid/view/ViewGroup;
     if-eqz v1, :catchall_0
     check-cast v0, Landroid/view/ViewGroup;
+
+    invoke-virtual {v0}, Landroid/view/View;->getParent()Landroid/view/ViewParent;
+    move-result-object v1
+    instance-of v2, v1, Landroid/view/View;
+    if-eqz v2, :catchall_0
+    check-cast v1, Landroid/view/View;
+
+    sget v2, Lru/fourpda/client/e1;->a3:I
+    invoke-virtual {v1, v2}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+    move-result-object v2
+    instance-of v3, v2, Landroid/view/ViewGroup;
+    if-eqz v3, :catchall_0
+    check-cast v2, Landroid/view/ViewGroup;
+
     invoke-virtual {v0, p0}, Landroid/view/ViewGroup;->removeView(Landroid/view/View;)V
 
-    invoke-virtual {p0}, Landroid/view/View;->getRootView()Landroid/view/View;
-    move-result-object v0
-    if-eqz v0, :catchall_0
-
-    sget v1, Lru/fourpda/client/e1;->a3:I
-    invoke-virtual {v0, v1}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-    move-result-object v1
-    instance-of v2, v1, Landroid/view/ViewGroup;
-    if-eqz v2, :catchall_0
-    check-cast v1, Landroid/view/ViewGroup;
-
-    sget v2, Lru/fourpda/client/e1;->V2:I
-    invoke-virtual {v0, v2}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+    sget v0, Lru/fourpda/client/e1;->V2:I
+    invoke-virtual {v1, v0}, Landroid/view/View;->findViewById(I)Landroid/view/View;
     move-result-object v0
     if-eqz v0, :add_end
 
-    invoke-virtual {v1, v0}, Landroid/view/ViewGroup;->indexOfChild(Landroid/view/View;)I
+    invoke-virtual {v2, v0}, Landroid/view/ViewGroup;->indexOfChild(Landroid/view/View;)I
     move-result v0
     if-ltz v0, :add_end
 
     add-int/lit8 v0, v0, 0x1
-    invoke-virtual {v1, p0, v0}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
+    invoke-virtual {v2, p0, v0}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
     return-void
 
     :add_end
-    invoke-virtual {v1, p0}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
+    invoke-virtual {v2, p0}, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+
+    :catchall_0
+    return-void
+.end method
+
+.method public static addTabRow(Landroid/view/ViewGroup;Landroid/view/View;)V
+    .registers 4
+    :try_start_0
+    if-eqz p0, :catchall_0
+    if-eqz p1, :catchall_0
+
+    invoke-virtual {p0}, Landroid/view/ViewGroup;->getChildCount()I
+    move-result v0
+    const/16 v1, 0x8
+    if-le v1, v0, :use_index
+    move v1, v0
+    :use_index
+    invoke-virtual {p0, p1, v1}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
     :try_end_0
     .catchall {:try_start_0 .. :try_end_0} :catchall_0
 
@@ -113,7 +133,11 @@ val newTabOnTopPatch = bytecodePatch(
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
-        // 1. Новая вкладка сразу под «Открытые вкладки» (индекс 8)
+        if (classDefs[MOVE_TICKETS] == null) {
+            classDefs += assemble(MOVE_TICKETS_SMALI)
+        }
+
+        // 1. Новая вкладка сразу под «Открытые вкладки» через безопасный addTabRow
         val tab = classDefs[TAB] ?: error("в apk нет вкладки")
         val tabSetup = proxy(tab).mutableClass.methods.firstOrNull { method ->
             method.name == "<init>" && method.implementation?.instructions?.any { instruction ->
@@ -133,27 +157,16 @@ val newTabOnTopPatch = bytecodePatch(
         val call = tabInstructions[insert] as FiveRegisterInstruction
         val drawerRegister = call.registerC
         val rowRegister = call.registerD
-        val indexRegister = 4
-        if (
-            drawerRegister > 15 || rowRegister > 15 ||
-            drawerRegister == indexRegister || rowRegister == indexRegister
-        ) {
+        if (drawerRegister > 15 || rowRegister > 15) {
             error("строка вкладки попала в широкий регистр")
         }
-        tabSetup.removeInstructions(insert, 1)
-        tabSetup.addInstructions(
+
+        tabSetup.replaceInstruction(
             insert,
-            """
-            const/4 v$indexRegister, 0x$OPEN_TABS
-            invoke-virtual {v$drawerRegister, v$rowRegister, v$indexRegister}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
-            """.trimIndent(),
+            "invoke-static {v$drawerRegister, v$rowRegister}, $MOVE_TICKETS->addTabRow(Landroid/view/ViewGroup;Landroid/view/View;)V",
         )
 
         // 2. Перенос кнопки «Тикеты» из подменю профиля под «Упоминания»
-        if (classDefs[MOVE_TICKETS] == null) {
-            classDefs += assemble(MOVE_TICKETS_SMALI)
-        }
-
         val mainActivity = classDefs[MAIN_ACTIVITY] ?: error("в apk нет MainActivity")
         val mainSetup = proxy(mainActivity).mutableClass.methods.firstOrNull { method ->
             method.name == "f" && method.parameterTypes == listOf("Landroid/os/Bundle;")
@@ -176,9 +189,7 @@ val newTabOnTopPatch = bytecodePatch(
 
         mainSetup.addInstructions(
             targetIndex + 1,
-            """
-            invoke-static {v$viewRegister}, $MOVE_TICKETS->move(Landroid/view/View;)V
-            """.trimIndent(),
+            "invoke-static {v$viewRegister}, $MOVE_TICKETS->move(Landroid/view/View;)V",
         )
     }
 }
