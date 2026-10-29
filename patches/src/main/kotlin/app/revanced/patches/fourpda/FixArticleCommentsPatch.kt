@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val Q0_CLASS = "Lru/fourpda/client/Q0;"
 private const val Q0_S_CLASS = "Lru/fourpda/client/Q0\$s;"
+private const val Q0_N_CLASS = "Lru/fourpda/client/Q0\$n;"
 private const val Y_CLASS = "Lru/fourpda/client/y;"
 
 private fun Instruction.calledMethod(): MethodReference? =
@@ -72,8 +73,9 @@ val fixArticleCommentsPatch = bytecodePatch(
         }
 
         // 3. Находим строку комментария: invoke-virtual {v0, v13}, y->l(I) -> move-result-object v14
+        // Поиск строго ПОСЛЕ l13Index (начиная с l13Index + 2), чтобы не совпасть с самим l13Index
         var rowFetchIndex = -1
-        for (i in l13Index until minOf(l13Index + 50, instructions.size)) {
+        for (i in (l13Index + 2) until minOf(l13Index + 50, instructions.size)) {
             val inst = instructions[i]
             if (inst.opcode == Opcode.INVOKE_VIRTUAL && inst.calledMethod()?.name == "l" && inst.calledMethod()?.definingClass == Y_CLASS) {
                 val next = instructions.getOrNull(i + 1)
@@ -86,6 +88,13 @@ val fixArticleCommentsPatch = bytecodePatch(
         if (rowFetchIndex < 0) {
             error("Не удалось найти выборку строки комментария v14 в Q0.H()")
         }
+
+        require(instructions[rowFetchIndex + 1].opcode == Opcode.MOVE_RESULT_OBJECT) { "Неверная инструкция rowFetchIndex+1" }
+        require(instructions[rowFetchIndex + 2].opcode == Opcode.INVOKE_VIRTUAL) { "Неверная инструкция rowFetchIndex+2" }
+        require(instructions[rowFetchIndex + 3].opcode == Opcode.MOVE_RESULT_OBJECT) { "Неверная инструкция rowFetchIndex+3" }
+        require(instructions[rowFetchIndex + 4].opcode == Opcode.INVOKE_VIRTUAL) { "Неверная инструкция rowFetchIndex+4" }
+        require(instructions[rowFetchIndex + 5].opcode == Opcode.MOVE_RESULT) { "Неверная инструкция rowFetchIndex+5" }
+        require(instructions[rowFetchIndex + 6].opcode == Opcode.NEW_INSTANCE) { "Неверная инструкция rowFetchIndex+6" }
 
         // 4. Починка опросов: если опрос закрыт ((poll.c & 1) == 0), выставляем бит 4 (poll.c |= 4),
         // чтобы показывать результаты опроса вместо заблокированных радиокнопок.
@@ -107,168 +116,65 @@ val fixArticleCommentsPatch = bytecodePatch(
             )
         }
 
-        // 5. Защита от NullPointerException при парсинге комментариев.
-        // Выполняем замены от наибольшего индекса к наименьшему (в нисходящем порядке),
-        // чтобы смещения инструкций не сдвигались.
+        // 5. Защита от NullPointerException при чтении кармы (инструкция iput v15, v6, Q0$n->k:I)
+        val karmaWriteIndex = instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.IPUT &&
+                instruction.field()?.definingClass == Q0_N_CLASS &&
+                instruction.field()?.name == "k"
+        }
+        if (karmaWriteIndex > rowFetchIndex) {
+            require(instructions[karmaWriteIndex - 1].opcode == Opcode.MOVE_RESULT) { "Неверная инструкция перед karmaWrite" }
+            require(instructions[karmaWriteIndex - 2].opcode == Opcode.INVOKE_VIRTUAL) { "Неверный invoke intValue перед karmaWrite" }
 
-        // Offset +61: аватар move-result-object v14
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 61,
-            """
-            move-result-object v14
-            if-nez v14, :cond_avatar_ok
-            const-string v14, ""
-            :cond_avatar_ok
-            """.trimIndent(),
-        )
+            parseMethod.replaceInstruction(karmaWriteIndex - 1, "nop")
+            parseMethod.replaceInstruction(
+                karmaWriteIndex - 2,
+                """
+                if-eqz v15, :cond_karma_null
+                invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
+                move-result v15
+                goto :cond_karma_done
+                :cond_karma_null
+                const/4 v15, 0x0
+                :cond_karma_done
+                """.trimIndent(),
+            )
+        }
 
-        // Offset +57: move-result v15 (карма)
-        parseMethod.replaceInstruction(rowFetchIndex + 57, "nop")
-
-        // Offset +56: invoke-virtual {v15}, Integer->intValue() (карма)
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 56,
-            """
-            if-nez v15, :cond_karma_null
-            const/4 v15, 0x0
-            goto :cond_karma_done
-            :cond_karma_null
-            invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
-            move-result v15
-            :cond_karma_done
-            """.trimIndent(),
-        )
-
-        // Offset +42: текст move-result-object v15
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 42,
-            """
-            move-result-object v15
-            if-nez v15, :cond_text_ok
-            const-string v15, ""
-            :cond_text_ok
-            """.trimIndent(),
-        )
-
-        // Offset +36: move-result v15 (таймштамп)
-        parseMethod.replaceInstruction(rowFetchIndex + 36, "nop")
-
-        // Offset +35: invoke-virtual {v15}, Integer->intValue() (таймштамп)
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 35,
-            """
-            if-nez v15, :cond_ts_null
-            const/4 v15, 0x0
-            goto :cond_ts_done
-            :cond_ts_null
-            invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
-            move-result v15
-            :cond_ts_done
-            """.trimIndent(),
-        )
-
-        // Offset +29: автор move-result-object v15
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 29,
-            """
-            move-result-object v15
-            if-nez v15, :cond_author_ok
-            const-string v15, ""
-            :cond_author_ok
-            """.trimIndent(),
-        )
-
-        // Offset +23: move-result v7 (parentId)
-        parseMethod.replaceInstruction(rowFetchIndex + 23, "nop")
-
-        // Offset +22: invoke-virtual {v7}, Integer->intValue() (parentId)
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 22,
-            """
-            if-nez v7, :cond_parent_null
-            const/4 v7, 0x0
-            goto :cond_parent_done
-            :cond_parent_null
-            invoke-virtual {v7}, Ljava/lang/Integer;->intValue()I
-            move-result v7
-            :cond_parent_done
-            """.trimIndent(),
-        )
-
-        // Offset +17: move-result v7 (userId)
-        parseMethod.replaceInstruction(rowFetchIndex + 17, "nop")
-
-        // Offset +16: invoke-virtual {v7}, Integer->intValue() (userId)
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 16,
-            """
-            if-nez v7, :cond_user_null
-            const/4 v7, 0x0
-            goto :cond_user_done
-            :cond_user_null
-            invoke-virtual {v7}, Ljava/lang/Integer;->intValue()I
-            move-result v7
-            :cond_user_done
-            """.trimIndent(),
-        )
-
-        // Offset +11: move-result v7 (ID)
-        parseMethod.replaceInstruction(rowFetchIndex + 11, "nop")
-
-        // Offset +10: invoke-virtual/range {v16 .. v16}, Integer->intValue() (ID)
-        parseMethod.replaceInstruction(
-            rowFetchIndex + 10,
-            """
-            if-nez v16, :cond_id_null
-            const/4 v7, 0x0
-            goto :cond_id_done
-            :cond_id_null
-            invoke-virtual/range {v16 .. v16}, Ljava/lang/Integer;->intValue()I
-            move-result v7
-            :cond_id_done
-            """.trimIndent(),
-        )
-
-        // Offset +5: move-result v15 (флаги)
-        parseMethod.replaceInstruction(rowFetchIndex + 5, "nop")
-
-        // Offset +4: чтение флагов с проверкой null
+        // 6. Проверка строки комментария v14 на null и минимальный размер d() >= 6.
+        // Заменяем в нисходящем порядке (rowFetchIndex + 4, + 3, + 2), чтобы не сдвигать смещения:
+        //
+        // rowFetchIndex + 4: invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
         parseMethod.replaceInstruction(
             rowFetchIndex + 4,
             """
             invoke-virtual {v14, v7}, Lru/fourpda/client/y;->m(I)Ljava/lang/Integer;
             move-result-object v15
-            if-nez v15, :cond_flags_null
-            const/4 v15, 0x0
-            goto :cond_flags_done
-            :cond_flags_null
             invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
-            move-result v15
-            :cond_flags_done
             """.trimIndent(),
         )
 
-        // Offset +3: если строка битая/удаленная ([0]), переходим к следующей итерации (loopNext)
+        // rowFetchIndex + 3: move-result-object v15 -> заменяем на условный переход IF_EQZ к loopNext
         parseMethod.replaceInstruction(
             rowFetchIndex + 3,
             BuilderInstruction21t(Opcode.IF_EQZ, 15, loopNextBranch.target),
         )
 
-        // Offset +2: проверка строки комментария на null и длину d() >= 6
+        // rowFetchIndex + 2: invoke-virtual {v14, v7}, Lru/fourpda/client/y;->m(I)Ljava/lang/Integer; -> проверка v14
         parseMethod.replaceInstruction(
             rowFetchIndex + 2,
             """
-            if-nez v14, :cond_invalid_row
+            if-eqz v14, :cond_row_null
             invoke-virtual {v14}, Lru/fourpda/client/y;->d()I
             move-result v15
             const/4 v16, 0x6
             if-ge v15, v16, :cond_row_ok
-            :cond_invalid_row
+            :cond_row_null
             const/4 v15, 0x0
-            goto :cond_after_row_check
+            goto :cond_row_done
             :cond_row_ok
             const/4 v15, 0x1
-            :cond_after_row_check
+            :cond_row_done
             """.trimIndent(),
         )
     }
