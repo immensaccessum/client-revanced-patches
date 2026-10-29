@@ -54,6 +54,8 @@ private const val MULTI_ACCOUNT_SMALI = """
 .field public mode:I
 .field public dlg:Lru/fourpda/client/C1;
 .field public edit2:Landroid/widget/EditText;
+.field private static clickCount:I
+.field private static lastClickTime:J
 
 .method public constructor <init>(Lru/fourpda/client/MainActivity;I)V
     .registers 3
@@ -245,16 +247,16 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-static {p0}, Lru/fourpda/client/MultiAccount;->syncCurrent(Landroid/content/Context;)V
 
     :setup_ui
-    sget v0, Lru/fourpda/client/e1;->W2:I
+    sget v0, Lru/fourpda/client/e1;->O2:I
     invoke-virtual {p0, v0}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
     move-result-object v0
     if-eqz v0, :check_menu
     const/4 v1, 0x1
-    invoke-virtual {v0, v1}, Landroid/view/View;->setLongClickable(Z)V
+    invoke-virtual {v0, v1}, Landroid/view/View;->setClickable(Z)V
     new-instance v1, Lru/fourpda/client/MultiAccount;
     const/4 v2, 0x0
     invoke-direct {v1, p0, v2}, Lru/fourpda/client/MultiAccount;-><init>(Lru/fourpda/client/MainActivity;I)V
-    invoke-virtual {v0, v1}, Landroid/view/View;->setOnLongClickListener(Landroid/view/View${'$'}OnLongClickListener;)V
+    invoke-virtual {v0, v1}, Landroid/view/View;->setOnClickListener(Landroid/view/View${'$'}OnClickListener;)V
 
     :check_menu
     sget v0, Lru/fourpda/client/e1;->l3:I
@@ -918,12 +920,12 @@ private const val MULTI_ACCOUNT_SMALI = """
 .end method
 
 .method public onClick(Landroid/view/View;)V
-    .registers 6
+    .registers 8
     iget-object v0, p0, Lru/fourpda/client/MultiAccount;->act:Lru/fourpda/client/MainActivity;
     if-eqz v0, :done
     iget v1, p0, Lru/fourpda/client/MultiAccount;->mode:I
     const/4 v2, 0x2
-    if-ne v1, v2, :open_main
+    if-ne v1, v2, :handle_multi_tap
     iget-object v1, p0, Lru/fourpda/client/MultiAccount;->dlg:Lru/fourpda/client/C1;
     if-eqz v1, :done
     iget-object v2, v1, Lru/fourpda/client/C1;->l:Landroid/widget/EditText;
@@ -932,20 +934,38 @@ private const val MULTI_ACCOUNT_SMALI = """
     invoke-static {v0, v2, v3, v1}, Lru/fourpda/client/MultiAccount;->onTokenSubmit(Lru/fourpda/client/MainActivity;Landroid/widget/EditText;Landroid/widget/EditText;Lru/fourpda/client/Widgets${'$'}CheckboxTextView;)V
     return-void
 
-    :open_main
+    :handle_multi_tap
+    invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+    move-result-wide v1
+    sget-wide v3, Lru/fourpda/client/MultiAccount;->lastClickTime:J
+    sub-long v3, v1, v3
+    sput-wide v1, Lru/fourpda/client/MultiAccount;->lastClickTime:J
+
+    const-wide/16 v1, 0x258
+    cmp-long v5, v3, v1
+    if-lez v5, :reset_tap
+
+    sget v1, Lru/fourpda/client/MultiAccount;->clickCount:I
+    add-int/lit8 v1, v1, 0x1
+    sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
+    const/4 v2, 0x5
+    if-ge v1, v2, :done
+
+    const/4 v1, 0x0
+    sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showMainDialog(Lru/fourpda/client/MainActivity;)V
+    return-void
+
+    :reset_tap
+    const/4 v1, 0x1
+    sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
+
     :done
     return-void
 .end method
 
 .method public onLongClick(Landroid/view/View;)Z
     .registers 3
-    iget-object v0, p0, Lru/fourpda/client/MultiAccount;->act:Lru/fourpda/client/MainActivity;
-    if-eqz v0, :done
-    invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showMainDialog(Lru/fourpda/client/MainActivity;)V
-    const/4 v0, 0x1
-    return v0
-    :done
     const/4 v0, 0x0
     return v0
 .end method
