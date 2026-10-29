@@ -87,6 +87,7 @@ val fixArticleCommentsPatch = bytecodePatch(
         }
 
         // 2. Находим переход if-eqz, ведущий к концу блока комментариев (:cond_e, где проверяется w0.i:Z)
+        var condEBranchIndex = -1
         var condEBranch: BuilderInstruction21t? = null
         for (i in l13Index until minOf(l13Index + 40, instructions.size)) {
             val inst = instructions[i]
@@ -96,36 +97,49 @@ val fixArticleCommentsPatch = bytecodePatch(
                 val fieldRef = targetInst?.field()
                 if (fieldRef?.name == "i" && fieldRef.type == "Z" && fieldRef.definingClass == "Lru/fourpda/client/w0;") {
                     condEBranch = branch
+                    condEBranchIndex = i
                     break
                 }
             }
         }
 
-        if (condEBranch == null) {
+        if (condEBranch == null || condEBranchIndex < 0) {
             error("Не удалось найти целевой переход cond_e в Q0.H()")
         }
 
-        // 3. Индекс new-instance v10, Ljava/util/Vector; (сразу после move-result-object v0)
-        val vectorNewIndex = l13Index + 2
-        val newInst = instructions[vectorNewIndex]
-        if (newInst.opcode != Opcode.NEW_INSTANCE) {
-            error("Ожидался new-instance на позиции $vectorNewIndex, но получен ${newInst.opcode}")
-        }
-
-        // 1. Сначала заменяем инструкцию, следующую за new-instance (if-eqz v0, :cond_2),
-        //    на безусловный переход к cond_e:
+        // 3. Заменяем проверку if-eqz v0, :cond_e на безусловный переход goto/32 :cond_e.
+        // Это аккуратно пропускает старый сломанный парсер комментариев 4PDA,
+        // сохраняя всю инициализацию объектов выше и не нарушая верификацию байткода ART.
         parseMethod.replaceInstruction(
-            vectorNewIndex + 1,
+            condEBranchIndex,
             BuilderInstruction30t(Opcode.GOTO_32, condEBranch.target),
         )
 
-        // 2. Затем заменяем сам new-instance на вызов нашего парсера:
+        // 4. Находим место записи списка комментариев в поле this.M (iput-object v10, v1, Q0->M)
+        val mFieldWrite = instructions.indexOfFirst { instruction ->
+            val field = instruction.field()
+            instruction.opcode == Opcode.IPUT_OBJECT &&
+                field?.definingClass == Q0_CLASS &&
+                field.name == "M"
+        }
+        if (mFieldWrite < 0) {
+            error("Не найдена запись в поле Q0.M")
+        }
+
+        // 5. Подменяем результат парсинга на вызов нашего ArticleCommentsHelper перед сохранением в this.M
         parseMethod.replaceInstruction(
-            vectorNewIndex,
+            mFieldWrite,
             """
+            iget-object v0, v1, Lru/fourpda/client/w0;->k:Lru/fourpda/client/y;
+            if-eqz v0, :cond_skip_custom_comments
+            const/16 v10, 0xd
+            invoke-virtual {v0, v10}, Lru/fourpda/client/y;->l(I)Lru/fourpda/client/y;
+            move-result-object v0
             invoke-static {v1, v0}, $HELPER_CLASS->parseComments(Lru/fourpda/client/Q0;Lru/fourpda/client/y;)Ljava/util/Vector;
             move-result-object v10
-            """,
+            :cond_skip_custom_comments
+            iput-object v10, v1, Lru/fourpda/client/Q0;->M:Ljava/util/List;
+            """.trimIndent(),
         )
     }
 }
