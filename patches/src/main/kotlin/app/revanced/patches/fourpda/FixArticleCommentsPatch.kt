@@ -112,21 +112,20 @@ val fixArticleCommentsPatch = bytecodePatch(
             error("Ожидался new-instance на позиции $vectorNewIndex, но получен ${newInst.opcode}")
         }
 
-        // Заменяем new-instance v10, Ljava/util/Vector; на вызов нашего парсера
+        // 1. Сначала заменяем инструкцию, следующую за new-instance (if-eqz v0, :cond_2),
+        //    на безусловный переход к cond_e:
+        parseMethod.replaceInstruction(
+            vectorNewIndex + 1,
+            BuilderInstruction30t(Opcode.GOTO_32, condEBranch.target),
+        )
+
+        // 2. Затем заменяем сам new-instance на вызов нашего парсера:
         parseMethod.replaceInstruction(
             vectorNewIndex,
             """
             invoke-static {v1, v0}, $HELPER_CLASS->parseComments(Lru/fourpda/client/Q0;Lru/fourpda/client/y;)Ljava/util/Vector;
             move-result-object v10
             """,
-        )
-
-        // И сразу после move-result-object v10 делаем безусловный переход к cond_e
-        // Обратите внимание: replaceInstruction заменил 1 инструкцию на 2 (invoke-static + move-result-object).
-        // Поэтому следующая инструкция находится по индексу vectorNewIndex + 2.
-        instructions.add(
-            vectorNewIndex + 2,
-            BuilderInstruction30t(Opcode.GOTO_32, condEBranch.target),
         )
     }
 }
