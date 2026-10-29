@@ -3,7 +3,6 @@ package app.revanced.patches.fourpda
 import app.revanced.patcher.extensions.addInstructions
 import app.revanced.patcher.extensions.replaceInstruction
 import app.revanced.patcher.patch.bytecodePatch
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -149,7 +148,7 @@ private val QMS_FIX_HELPER_SMALI = """
     iget v3, v0, Lru/fourpda/client/w0;->w:I
 
     invoke-virtual {v1, v4}, Landroid/util/SparseArray;->removeAt(I)V
-    invoke-virtual {v0}, Lru/fourpda/client/M0;->q0()V
+    invoke-static {v0}, Lru/fourpda/client/M0;->i0(Lru/fourpda/client/M0;)V
 
     const/4 v5, 0x1
     invoke-virtual {v0, v5}, Lru/fourpda/client/w0;->a0(Z)V
@@ -209,36 +208,9 @@ val fixQmsBugsPatch = bytecodePatch(
             classDefs += assemble(QMS_FIX_HELPER_SMALI)
         }
 
-        // --- Делаем необходимые поля и методы публичными для безопасного вызова ---
+        // --- Классы для патчинга ---
         val m0Class = proxy(classDefs[M0_CLASS] ?: error("в apk нет M0")).mutableClass
-        val pField = m0Class.fields.firstOrNull { it.name == "P" } ?: error("не найдено поле M0.P")
-        pField.accessFlags = (pField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val q0Method = m0Class.methods.firstOrNull { it.name == "q0" } ?: error("не найден метод M0.q0")
-        q0Method.accessFlags = (q0Method.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val eField = m0Class.fields.firstOrNull { it.name == "E" } ?: error("не найдено поле M0.E")
-        eField.accessFlags = (eField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val vField = m0Class.fields.firstOrNull { it.name == "V" } ?: error("не найдено поле M0.V")
-        vField.accessFlags = (vField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-
-        val w0Class = proxy(classDefs[W0_CLASS] ?: error("в apk нет w0")).mutableClass
-        val xField = w0Class.fields.firstOrNull { it.name == "x" } ?: error("не найдено поле w0.x")
-        xField.accessFlags = (xField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val wField = w0Class.fields.firstOrNull { it.name == "w" } ?: error("не найдено поле w0.w")
-        wField.accessFlags = (wField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val wMethod = w0Class.methods.firstOrNull { it.name == "W" } ?: error("не найден метод w0.W")
-        wMethod.accessFlags = (wMethod.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val yMethod = w0Class.methods.firstOrNull { it.name == "Y" } ?: error("не найден метод w0.Y")
-        yMethod.accessFlags = (yMethod.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-        val a0Method = w0Class.methods.firstOrNull { it.name == "a0" } ?: error("не найден метод w0.a0")
-        a0Method.accessFlags = (a0Method.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-
-        val atClass = proxy(classDefs[A_T_CLASS] ?: error("в apk нет a\$t")).mutableClass
-        val hField = atClass.fields.firstOrNull { it.name == "h" } ?: error("не найдено поле a\$t.h")
-        hField.accessFlags = (hField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
-
         val l0mClass = proxy(classDefs[L0_M_CLASS] ?: error("в apk нет L0\$m")).mutableClass
-        val jField = l0mClass.fields.firstOrNull { it.name == "j" } ?: error("не найдено поле L0\$m.j")
-        jField.accessFlags = (jField.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
 
         // --- 1. Удаление сообщения на месте в L0$m.i ---
         val iMethod = l0mClass.methods.firstOrNull { it.name == "i" } ?: error("не найден метод L0\$m.i")
