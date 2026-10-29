@@ -75,7 +75,7 @@ private const val ARTICLE_FIX_HELPER_SMALI = """
     if-ge v4, v3, :cond_add
     goto :cond_skip
     :cond_add
-    invoke-virtual {p0, v2}, Lru/fourpda/client/y;->l(I)Lru/fourpda/client/y;
+    invoke-virtual {p0, v2}, Lru/fourpda/client/y;->f(I)Ljava/lang/Object;
     move-result-object v3
     invoke-virtual {v0, v3}, Lru/fourpda/client/y;->b(Ljava/lang/Object;)Lru/fourpda/client/y;
     :cond_skip
