@@ -1,24 +1,101 @@
 package app.revanced.patches.fourpda
 
-import app.revanced.patcher.extensions.replaceInstruction
+import app.revanced.patcher.extensions.addInstructions
 import app.revanced.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.writer.builder.DexBuilder
+import com.android.tools.smali.smali.smaliFlexLexer
+import com.android.tools.smali.smali.smaliParser
+import com.android.tools.smali.smali.smaliTreeWalker
+import org.antlr.runtime.CommonTokenStream
+import org.antlr.runtime.TokenSource
+import org.antlr.runtime.tree.CommonTreeNodeStream
+import java.io.StringReader
 
 private const val Q0_CLASS = "Lru/fourpda/client/Q0;"
 private const val Q0_S_CLASS = "Lru/fourpda/client/Q0\$s;"
-private const val Q0_N_CLASS = "Lru/fourpda/client/Q0\$n;"
 private const val Y_CLASS = "Lru/fourpda/client/y;"
+private const val ARTICLE_FIX_HELPER = "Lru/fourpda/client/ArticleFixHelper;"
 
 private fun Instruction.calledMethod(): MethodReference? =
     (this as? ReferenceInstruction)?.reference as? MethodReference
 
 private fun Instruction.field(): FieldReference? =
     (this as? ReferenceInstruction)?.reference as? FieldReference
+
+private fun assemble(smali: String): ClassDef {
+    val reader = StringReader(smali)
+    val lexer = smaliFlexLexer(reader, 15)
+    val tokens = CommonTokenStream(lexer as TokenSource)
+    val parser = smaliParser(tokens)
+    val fileTree = parser.smali_file()
+    if (lexer.numberOfSyntaxErrors > 0 || parser.numberOfSyntaxErrors > 0) {
+        error("ошибка сборки ArticleFixHelper")
+    }
+    val walker = smaliTreeWalker(
+        CommonTreeNodeStream(fileTree.tree).apply { tokenStream = tokens },
+    )
+    walker.setDexBuilder(DexBuilder(Opcodes.getDefault()))
+    return walker.smali_file()
+}
+
+private const val ARTICLE_FIX_HELPER_SMALI = """
+.class public Lru/fourpda/client/ArticleFixHelper;
+.super Ljava/lang/Object;
+
+.method public constructor <init>()V
+    .locals 0
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+    return-void
+.end method
+
+.method public static filterComments(Lru/fourpda/client/y;)Lru/fourpda/client/y;
+    .locals 5
+    if-eqz p0, :cond_done
+    new-instance v0, Lru/fourpda/client/y;
+    invoke-direct {v0}, Lru/fourpda/client/y;-><init>()V
+    invoke-virtual {p0}, Lru/fourpda/client/y;->d()I
+    move-result v1
+    const/4 v2, 0x0
+    :goto_loop
+    if-ge v2, v1, :cond_return
+    invoke-virtual {p0, v2}, Lru/fourpda/client/y;->l(I)Lru/fourpda/client/y;
+    move-result-object v3
+    if-eqz v3, :cond_skip
+    invoke-virtual {v3}, Lru/fourpda/client/y;->d()I
+    move-result v4
+    const/4 v3, 0x6
+    if-ge v4, v3, :cond_add
+    goto :cond_skip
+    :cond_add
+    invoke-virtual {p0, v2}, Lru/fourpda/client/y;->l(I)Lru/fourpda/client/y;
+    move-result-object v3
+    invoke-virtual {v0, v3}, Lru/fourpda/client/y;->b(Ljava/lang/Object;)Lru/fourpda/client/y;
+    :cond_skip
+    add-int/lit8 v2, v2, 0x1
+    goto :goto_loop
+    :cond_return
+    return-object v0
+    :cond_done
+    return-object p0
+.end method
+
+.method public static fixPollFlags(I)I
+    .locals 1
+    and-int/lit8 v0, p0, 0x1
+    if-nez v0, :cond_can_vote
+    or-int/lit8 p0, p0, 0x4
+    :cond_can_vote
+    return p0
+.end method
+"""
 
 val fixArticleCommentsPatch = bytecodePatch(
     name = "Ремонт комментариев и опросов в статьях",
@@ -27,6 +104,10 @@ val fixArticleCommentsPatch = bytecodePatch(
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
     apply {
+        if (classDefs[ARTICLE_FIX_HELPER] == null) {
+            classDefs += assemble(ARTICLE_FIX_HELPER_SMALI)
+        }
+
         val q0Class = classDefs[Q0_CLASS] ?: error("в apk нет Q0")
         val parseMethod = proxy(q0Class).mutableClass.methods.firstOrNull { method ->
             method.name == "H" && method.returnType == "Z"
@@ -65,76 +146,25 @@ val fixArticleCommentsPatch = bytecodePatch(
                 instruction.field()?.name == "c"
         }
         if (pollFlagsWriteIndex >= 0) {
-            parseMethod.replaceInstruction(
+            parseMethod.addInstructions(
                 pollFlagsWriteIndex,
                 """
-                and-int/lit8 v14, v13, 0x1
-                if-nez v14, :cond_can_vote
-                or-int/lit8 v13, v13, 0x4
-                :cond_can_vote
-                iput v13, v12, $Q0_S_CLASS->c:I
+                invoke-static {v13}, $ARTICLE_FIX_HELPER->fixPollFlags(I)I
+                move-result v13
                 """.trimIndent(),
             )
         }
 
-        // 3. Защита от NullPointerException при чтении кармы (инструкция iput v15, v6, Q0$n->k:I)
-        val karmaWriteIndex = instructions.indexOfFirst { instruction ->
-            instruction.opcode == Opcode.IPUT &&
-                instruction.field()?.definingClass == Q0_N_CLASS &&
-                instruction.field()?.name == "k"
-        }
-        if (karmaWriteIndex > l13Index) {
-            require(instructions[karmaWriteIndex - 1].opcode == Opcode.MOVE_RESULT) { "Неверная инструкция перед karmaWrite" }
-            require(instructions[karmaWriteIndex - 2].opcode == Opcode.INVOKE_VIRTUAL) { "Неверный invoke intValue перед karmaWrite" }
-
-            parseMethod.replaceInstruction(karmaWriteIndex - 1, "nop")
-            parseMethod.replaceInstruction(
-                karmaWriteIndex - 2,
-                """
-                if-eqz v15, :cond_karma_null
-                invoke-virtual {v15}, Ljava/lang/Integer;->intValue()I
-                move-result v15
-                goto :cond_karma_done
-                :cond_karma_null
-                const/4 v15, 0x0
-                :cond_karma_done
-                """.trimIndent(),
-            )
-        }
-
-        // 4. Фильтрация массива комментариев v0 от удаленных комментариев-заглушек [0].
-        // Выполняется сразу при получении v0 = k.l(13), ДО входа в цикл комментариев.
+        // 3. Фильтрация массива комментариев v0 от удаленных комментариев-заглушек [0].
+        // Выполняется сразу при получении v0 = k.l(13) ДО цикла комментариев через addInstructions.
         // Отфильтрованный v0 содержит только валидные строки комментариев (длиной >= 6),
         // поэтому оригинальный цикл парсера никогда не падает с NullPointerException
         // и без сбоев восстанавливает все комментарии и их дерево вложенности.
-        parseMethod.replaceInstruction(
-            l13Index + 1,
+        parseMethod.addInstructions(
+            l13Index + 2,
             """
+            invoke-static {v0}, $ARTICLE_FIX_HELPER->filterComments(Lru/fourpda/client/y;)Lru/fourpda/client/y;
             move-result-object v0
-            if-eqz v0, :cond_filter_done
-            new-instance v11, $Y_CLASS
-            invoke-direct {v11}, $Y_CLASS-><init>()V
-            invoke-virtual {v0}, $Y_CLASS->d()I
-            move-result v12
-            const/4 v13, 0x0
-            :goto_filter_loop
-            if-ge v13, v12, :cond_filter_end
-            invoke-virtual {v0, v13}, $Y_CLASS->l(I)$Y_CLASS
-            move-result-object v14
-            if-eqz v14, :cond_filter_next
-            invoke-virtual {v14}, $Y_CLASS->d()I
-            move-result v15
-            const/4 v16, 0x6
-            if-ge v15, v16, :cond_filter_add
-            goto :cond_filter_next
-            :cond_filter_add
-            invoke-virtual {v11, v14}, $Y_CLASS->b(Ljava/lang/Object;)$Y_CLASS
-            :cond_filter_next
-            add-int/lit8 v13, v13, 0x1
-            goto :goto_filter_loop
-            :cond_filter_end
-            move-object v0, v11
-            :cond_filter_done
             """.trimIndent(),
         )
     }
