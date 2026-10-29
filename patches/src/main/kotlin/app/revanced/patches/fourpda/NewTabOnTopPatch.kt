@@ -10,9 +10,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val TAB = "Lru/fourpda/client/l1;"
 private const val LAYOUT = "Lru/fourpda/client/MainLayout;"
-
-// В nav_tabs семь постоянных строк: шесть пунктов меню и подпись «Открытые вкладки».
-private const val OPEN_TABS = 7
+private const val RES_IDS = "Lru/fourpda/client/e1;"
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.calledMethod(): MethodReference? =
     (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -57,7 +55,15 @@ val newTabOnTopPatch = bytecodePatch(
         setup.addInstructions(
             insert,
             """
-            const/4 v$indexRegister, 0x$OPEN_TABS
+            sget v$indexRegister, $RES_IDS->p3:I
+            invoke-virtual {v$drawerRegister, v$indexRegister}, Landroid/view/ViewGroup;->findViewById(I)Landroid/view/View;
+            move-result-object v$indexRegister
+            if-eqz v$indexRegister, :cond_no_tickets
+            const/16 v$indexRegister, 0x8
+            goto :goto_insert
+            :cond_no_tickets
+            const/4 v$indexRegister, 0x7
+            :goto_insert
             invoke-virtual {v$drawerRegister, v$rowRegister, v$indexRegister}, Landroid/view/ViewGroup;->addView(Landroid/view/View;I)V
             """.trimIndent(),
         )
