@@ -1,6 +1,5 @@
 package app.revanced.patches.fourpda
 
-import app.revanced.patcher.data.BytecodeContext
 import app.revanced.patcher.extensions.replaceInstruction
 import app.revanced.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -8,7 +7,6 @@ import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
 import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -53,17 +51,19 @@ val fixArticleCommentsPatch = bytecodePatch(
     name = "Ремонт комментариев в статьях",
     description = "Исправляет отображение комментариев в статьях: предотвращает обрыв списка при удаленных комментариях и восстанавливает правильную древовидную вложенность ответов",
 ) {
-    compatiblePackages("ru.fourpda.client")
+    compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
 
-    execute {
-        val q0Class = classes.firstOrNull { it.type == Q0_CLASS }
-            ?: error("Класс $Q0_CLASS не найден")
+    apply {
+        if (classDefs[HELPER_CLASS] == null) {
+            classDefs += assemble(ARTICLE_COMMENTS_HELPER_SMALI)
+        }
 
-        val parseMethod = q0Class.methods.firstOrNull { it.name == "H" && it.returnType == "Z" }
-            ?: error("Метод Q0.H()Z не найден")
+        val q0Class = classDefs[Q0_CLASS] ?: error("в apk нет Q0")
+        val parseMethod = proxy(q0Class).mutableClass.methods.firstOrNull { method ->
+            method.name == "H" && method.returnType == "Z"
+        } ?: error("не найден метод Q0.H")
 
-        val instructions = parseMethod.implementation?.instructions
-            ?: error("Реализация метода Q0.H() пуста")
+        val instructions = parseMethod.implementation!!.instructions
 
         // 1. Находим вызов sa[13] -> this.k.l(13)
         var l13Index = -1
@@ -124,13 +124,10 @@ val fixArticleCommentsPatch = bytecodePatch(
         // И сразу после move-result-object v10 делаем безусловный переход к cond_e
         // Обратите внимание: replaceInstruction заменил 1 инструкцию на 2 (invoke-static + move-result-object).
         // Поэтому следующая инструкция находится по индексу vectorNewIndex + 2.
-        parseMethod.implementation!!.addInstruction(
+        instructions.add(
             vectorNewIndex + 2,
             BuilderInstruction30t(Opcode.GOTO_32, condEBranch.target),
         )
-
-        // 4. Добавляем класс ArticleCommentsHelper в сборку
-        classDefs += assemble(ARTICLE_COMMENTS_HELPER_SMALI)
     }
 }
 
