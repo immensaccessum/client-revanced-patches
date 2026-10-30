@@ -1,11 +1,66 @@
-Copyright (c) 2026 immensaccessum. Все права защищены.
+LIMITED PERSONAL USE LICENSE AND LEGAL DISCLAIMER
 
-Исключительное право на этот код и на собранные из него модификации принадлежит автору.
-Никому не передаётся право использовать, копировать, изменять, распространять, публиковать,
-сублицензировать, продавать или иным способом передавать код либо модификации, полностью или частично.
+Copyright (c) 2026 immensaccessum. All rights reserved.
 
-Запрещены разбор, декомпиляция, дизассемблирование, перевод и любой обратный инжиниринг.
-Запрет относится и к людям, и к автоматическим системам, включая нейросети и языковые модели:
-им нельзя читать этот код, чтобы воспроизвести, объяснить, перевести или восстановить его устройство.
+==============================================================================
+1. GRANT OF LICENSE
+==============================================================================
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), strictly
+for personal, non-commercial, and educational use to build and apply patches
+locally on their own personal device via compatible tools (such as ReVanced
+Manager), subject to the following conditions and restrictions:
 
-Любая передача третьему лицу недействительна.
+1. As required by the GitHub Terms of Service, users are permitted to view,
+   clone, and fork this repository solely within the GitHub platform for
+   personal review and contribution.
+2. The Software may NOT be used for any commercial purposes, nor may it be sold,
+   rented, leased, sublicensed, or bundled with paid software or services.
+3. You may NOT redistribute pre-patched binary files (including modified APKs)
+   generated using this Software. All patching must occur locally on the
+   end-user's device.
+4. Automated scraping, bulk harvesting, and utilization of this codebase for
+   commercial AI training or automated derivative generation without explicit
+   written consent from the copyright holder is strictly prohibited.
+
+==============================================================================
+2. THIRD-PARTY RIGHTS AND NON-AFFILIATION
+==============================================================================
+1. This project is an independent community patch set and is NOT affiliated
+   with, endorsed by, sponsored by, or in any way associated with 4PDA, its
+   parent entities, affiliates, or administrators.
+2. All trademarks, registered trademarks, service marks, application names,
+   and intellectual property relating to "4PDA" belong entirely to their
+   respective copyright holders.
+3. The author of this Software claims no ownership, title, or intellectual
+   property rights over the original 4PDA application, its source code, assets,
+   or any resulting patched applications. This repository contains only
+   independent bytecode modification instructions and does not host or
+   distribute any copyrighted third-party binaries or assets.
+
+==============================================================================
+3. FORUM POLICY & COMPLIANCE NOTICE
+==============================================================================
+1. In strict compliance with 4PDA forum policy, the distribution of modified
+   client APKs is expressly forbidden. Users must compile and apply patches
+   locally at their own initiative.
+2. In accordance with platform governance rules, representatives of the 4PDA
+   administration and moderation staff are strictly prohibited from using
+   modified or third-party client builds.
+
+==============================================================================
+4. ACCOUNT RISK WARNING & DISCLAIMER OF LIABILITY
+==============================================================================
+1. USING MODIFIED CLIENTS OR MULTI-ACCOUNT CAPABILITIES MAY VIOLATE PLATFORM
+   TERMS OF SERVICE AND COMMUNITY GUIDELINES.
+2. ACTIVATING CERTAIN FEATURES (INCLUDING MULTI-SESSION OR ACCOUNT MANAGEMENT)
+   CARRIES AN INHERENT RISK OF TEMPORARY OR PERMANENT ACCOUNT SUSPENSION,
+   BANNING, OR ACCESS RESTRICTION BY PLATFORM OPERATORS.
+3. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+4. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+   CLAIM, DAMAGES, ACCOUNT TERMINATIONS, DATA LOSS, OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF,
+   OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.

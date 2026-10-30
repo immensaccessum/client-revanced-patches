@@ -969,7 +969,7 @@ private const val MULTI_ACCOUNT_SMALI = """
 
 val multiAccountPatch = bytecodePatch(
     name = "Extended profile cache",
-    description = "Caches profile session data and navigation drawer state for improved stability.",
+    description = "Caches profile session data and navigation drawer state. Notice: Multi-session usage may violate platform rules and lead to account suspension or ban.",
     use = false,
 ) {
     compatibleWith("ru.fourpda.client"("1.9.44_pre7"))
