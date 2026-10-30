@@ -8,7 +8,7 @@ Copyright (c) 2026 immensaccessum. All rights reserved.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), strictly
 for personal, non-commercial, and educational use to build and apply patches
-locally on their own personal device via compatible tools (such as ReVanced
+locally on their personal device via compatible tools (such as ReVanced
 Manager), subject to the following conditions and restrictions:
 
 1. As required by the GitHub Terms of Service, users are permitted to view,
@@ -27,40 +27,34 @@ Manager), subject to the following conditions and restrictions:
 2. THIRD-PARTY RIGHTS AND NON-AFFILIATION
 ==============================================================================
 1. This project is an independent community patch set and is NOT affiliated
-   with, endorsed by, sponsored by, or in any way associated with 4PDA, its
-   parent entities, affiliates, or administrators.
-2. All trademarks, registered trademarks, service marks, application names,
-   and intellectual property relating to "4PDA" belong entirely to their
-   respective copyright holders.
+   with, endorsed by, sponsored by, or associated with 4PDA, its parent
+   entities, affiliates, or platform management.
+2. All trademarks, registered marks, application names, and proprietary assets
+   relating to "4PDA" belong entirely to their respective copyright holders.
 3. The author of this Software claims no ownership, title, or intellectual
    property rights over the original 4PDA application, its source code, assets,
    or any resulting patched applications. This repository contains only
-   independent bytecode modification instructions and does not host or
+   standalone bytecode modification instructions and does not host or
    distribute any copyrighted third-party binaries or assets.
 
 ==============================================================================
-3. FORUM POLICY & COMPLIANCE NOTICE
+3. FORUM POLICY & LOCAL EXECUTION
 ==============================================================================
-1. In strict compliance with 4PDA forum policy, the distribution of modified
-   client APKs is expressly forbidden. Users must compile and apply patches
-   locally at their own initiative.
-2. In accordance with platform governance rules, representatives of the 4PDA
-   administration and moderation staff are strictly prohibited from using
-   modified or third-party client builds.
+In accordance with 4PDA platform policy regarding modified software, the
+distribution of pre-patched or modified client binaries is prohibited. This
+repository provides only bytecode transformation recipes intended strictly for
+local execution by the end user on their own personal hardware.
 
 ==============================================================================
-4. ACCOUNT RISK WARNING & DISCLAIMER OF LIABILITY
+4. DISCLAIMER OF LIABILITY & ACCOUNT RISK
 ==============================================================================
-1. USING MODIFIED CLIENTS OR MULTI-ACCOUNT CAPABILITIES MAY VIOLATE PLATFORM
-   TERMS OF SERVICE AND COMMUNITY GUIDELINES.
-2. ACTIVATING CERTAIN FEATURES (INCLUDING MULTI-SESSION OR ACCOUNT MANAGEMENT)
-   CARRIES AN INHERENT RISK OF TEMPORARY OR PERMANENT ACCOUNT SUSPENSION,
-   BANNING, OR ACCESS RESTRICTION BY PLATFORM OPERATORS.
-3. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+1. THE USE OF UNOFFICIAL MODIFICATIONS OR THIRD-PARTY PATCHES CARRIES INHERENT
+   RISKS, INCLUDING POSSIBLE CONFLICTS WITH PLATFORM TERMS OF SERVICE.
+2. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
    FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
-4. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
-   CLAIM, DAMAGES, ACCOUNT TERMINATIONS, DATA LOSS, OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF,
-   OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-   SOFTWARE.
+3. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+   CLAIM, DAMAGES, ACCOUNT RESTRICTIONS, TERMINATIONS, LOSS OF DATA, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.

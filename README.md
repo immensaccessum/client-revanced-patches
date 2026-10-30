@@ -23,10 +23,8 @@ Custom patch bundle for the 4PDA Android client, designed for local use with [Re
 ## Important Notice & Disclaimer
 
 - **Non-Affiliation & Intellectual Property:** This project is independent and is not affiliated with, endorsed by, or connected to 4PDA. All rights to the original application, assets, and trademarks belong to their respective owners. The author claims no ownership over the original software or any resulting modified applications.
-- **Forum Policy Compliance:** 4PDA forum policy strictly prohibits the distribution of modified APK files. Patching is performed entirely locally on the end-user's device.
-- **Administration Restrictions:** In accordance with forum internal regulations, representatives of the forum administration and moderation team are expressly prohibited from using modified client applications.
-- **Account Ban Warning:** Using modified clients or multi-session features may violate platform terms of service. Enabling such capabilities carries an inherent risk of account suspension, ban, or restriction.
-- **Disclaimer of Liability:** The software is provided "AS IS", without warranty of any kind. You assume all responsibility and risk associated with its use.
+- **Forum Policy Compliance:** In accordance with forum rules regarding client modifications, no pre-built APKs are distributed. Patching is performed entirely locally on the end-user's device.
+- **Account Risk & Liability:** Using unofficial client modifications carries inherent risks, including potential platform restrictions or account penalties. The software is provided "AS IS", and the user assumes all responsibility for its use.
 
 ---
 
