@@ -865,8 +865,10 @@ private const val MULTI_ACCOUNT_SMALI = """
     sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
 
     const/4 v2, 0x5
-    if-ge v1, v2, :done
+    if-ge v1, v2, :open_dialog
+    return-void
 
+    :open_dialog
     const/4 v1, 0x0
     sput v1, Lru/fourpda/client/MultiAccount;->clickCount:I
     invoke-static {v0}, Lru/fourpda/client/MultiAccount;->showMainDialog(Lru/fourpda/client/MainActivity;)V
