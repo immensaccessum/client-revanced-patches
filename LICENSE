@@ -1,0 +1,60 @@
+LIMITED PERSONAL USE LICENSE AND LEGAL DISCLAIMER
+
+Copyright (c) 2026 immensaccessum. All rights reserved.
+
+==============================================================================
+1. GRANT OF LICENSE
+==============================================================================
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), strictly
+for personal, non-commercial, and educational use to build and apply patches
+locally on their personal device via compatible tools (such as ReVanced
+Manager), subject to the following conditions and restrictions:
+
+1. As required by the GitHub Terms of Service, users are permitted to view,
+   clone, and fork this repository solely within the GitHub platform for
+   personal review and contribution.
+2. The Software may NOT be used for any commercial purposes, nor may it be sold,
+   rented, leased, sublicensed, or bundled with paid software or services.
+3. You may NOT redistribute pre-patched binary files (including modified APKs)
+   generated using this Software. All patching must occur locally on the
+   end-user's device.
+4. Automated scraping, bulk harvesting, and utilization of this codebase for
+   commercial AI training or automated derivative generation without explicit
+   written consent from the copyright holder is strictly prohibited.
+
+==============================================================================
+2. THIRD-PARTY RIGHTS AND NON-AFFILIATION
+==============================================================================
+1. This project is an independent community patch set and is NOT affiliated
+   with, endorsed by, sponsored by, or associated with the target application,
+   its developers, publishers, or platform operators.
+2. All trademarks, registered marks, product names, and proprietary assets
+   belong entirely to their respective copyright holders.
+3. The author of this Software claims no ownership, title, or intellectual
+   property rights over the target application, its source code, assets,
+   or any resulting patched applications. This repository contains only
+   standalone bytecode modification instructions and does not host or
+   distribute any copyrighted third-party binaries or assets.
+
+==============================================================================
+3. POLICY COMPLIANCE & LOCAL EXECUTION
+==============================================================================
+In accordance with platform policies regarding modified software, the
+distribution of pre-patched or modified client binaries is prohibited. This
+repository provides only bytecode transformation recipes intended strictly for
+local execution by the end user on their own personal hardware.
+
+==============================================================================
+4. DISCLAIMER OF LIABILITY & ACCOUNT RISK
+==============================================================================
+1. THE USE OF UNOFFICIAL MODIFICATIONS OR THIRD-PARTY PATCHES CARRIES INHERENT
+   RISKS, INCLUDING POSSIBLE CONFLICTS WITH PLATFORM TERMS OF SERVICE.
+2. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+3. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+   CLAIM, DAMAGES, ACCOUNT RESTRICTIONS, TERMINATIONS, LOSS OF DATA, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
